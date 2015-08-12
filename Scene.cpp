@@ -10,7 +10,8 @@ Scene::Scene(void)
 	numOfSpheres = 0;
 	spheres = (Sphere*)calloc(1, sizeof(Sphere));
 	plane = (Plane*)calloc(1, sizeof(Plane));
-	*plane = Plane();
+	numOfMeshes = 0;
+	meshes = (Mesh**)calloc(1, sizeof(Mesh*));
 }
 
 Scene::Scene(float lightX, float lightY, float lightZ, float intensity){
@@ -19,12 +20,12 @@ Scene::Scene(float lightX, float lightY, float lightZ, float intensity){
 	light.setParams(lightX, lightY, lightZ, intensity);
 }
 
-Sphere Scene::getSphere(int number){
-	if(number<=numOfSpheres){
-		return spheres[number];
+Mesh* Scene::getMesh(int number){
+	if(number<=numOfMeshes){
+		return meshes[number];
 	}else{
-		printf("ERROR: THAT SHPERE DOES NOT EXSIST, DEFAULT SPHERE RETURNED");
-		return spheres[0];
+		printf("ERROR: THAT MESH DOES NOT EXSIST, DEFAULT MESH RETURNED");
+		return *(meshes+0);
 	}
 }
 
@@ -38,17 +39,28 @@ Plane Scene::getPlane(int number){
 }
 
 void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col){
-	numOfSpheres++;
-	spheres = (Sphere*)realloc(spheres, numOfSpheres*sizeof(Sphere));
-	
-	//Sphere newSphere(centreX, centreY, centreZ, radius);
-	//spheres[numOfSpheres-1] = newSphere;
-	//EQUALS THIS:
-	spheres[numOfSpheres-1] = Sphere(centreX, centreY, centreZ, radius, col);
+
+	numOfMeshes++;
+	meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
+
+	Sphere *t = new Sphere(centreX, centreY, centreZ, radius, col);
+
+	Mesh *m = t;
+	meshes[numOfMeshes-1] = m;
 }
 
-int Scene::getNumOfSpheres(void){
-	return numOfSpheres;
+void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour){
+	numOfMeshes++;
+	meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
+
+	Plane *p = new Plane(v1, v2, v3, v4, colour);
+
+	Mesh *m = p;
+	meshes[numOfMeshes-1] = m;
+}
+
+int Scene::getNumOfMeshes(void){
+	return numOfMeshes;
 }
 
 Light Scene::getLight(void){
@@ -57,5 +69,5 @@ Light Scene::getLight(void){
 
 Scene::~Scene(void)
 {
-	free(spheres);
+	free(meshes);
 }

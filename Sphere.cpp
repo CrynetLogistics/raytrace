@@ -64,6 +64,11 @@ bool Sphere::getShadowedStatus(vector_t lightRay, float t, Light light){
 	}
 }
 
+vector_t Sphere::getNormal(vertex_t pos){
+	vector_t normalVector(pos.x, pos.y, pos.z, pos.x-centre.x, pos.y-centre.y, pos.z-centre.z);
+	return normalVector;
+}
+
 colour_t Sphere::getColour(){
 	return colour;
 }

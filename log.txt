@@ -1,0 +1,9 @@
+1  - project init
+3  - added vector functionalities
+9  - added planes
+13 - created interface/abstract class for meshes to handle spheres
+14 - meshes now handles planes
+15 - fixed invert brightness issues
+16 - added shadowing for meshes AND introduced ray class for tracing
+18 - implemented multiple bounces for reflectivity and shadows
+20 - fixes

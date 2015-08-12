@@ -6,24 +6,22 @@
 #include "structures.h"
 #include "vector_t.h"
 #include "Plane.h"
+#include "Ray.h"
 
 #undef main
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define DISPLAY_TIME 10000
-#define BRIGHTNESS 15
-#define CLIPPING_DISTANCE 999
+#define DISPLAY_TIME 60000
 
 void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene);
 
 int main()
 {
     SDL_Window* window = NULL;
-    SDL_Surface* screenSurface = NULL;
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	//create window
-	window = SDL_CreateWindow("Mandelbrot", 
+	window = SDL_CreateWindow("Raytracer", 
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     
 	SDL_Renderer *renderer = NULL;
@@ -48,12 +46,19 @@ int main()
 	col3.b = 88;
 
 
-
+	vertex_t v1;
+	vertex_t v2;
+	vertex_t v3;
+	vertex_t v4;
+	v1.x = 1;v1.y = 8;v1.z = -1;
+	v2.x = 8;v2.y = 8;v2.z = -1;
+	v3.x = 1;v3.y = 15;v3.z = 3;
+	v4.x = 8;v4.y = 15;v4.z = 3;
 
 	
 
 	Scene scene;
-
+	scene.addPlane(v1,v2,v3,v4,col3);
 	scene.addSphere(2,10,5,2,col1);
 	scene.addSphere(0,12,0,4,col2);
 	scene.addSphere(-9,8,3,2,col3);
@@ -73,58 +78,9 @@ int main()
 }
 
 colour_t calculateIntensityFromIntersections(vector_t lightRay, Scene *scene){
-	//find nicer way of starting tMin
-	float tMin = CLIPPING_DISTANCE;
-	float tCurrent = 0;
-	int iMin = 0;
-
-	float currentR = 0;
-	float currentG = 0;
-	float currentB = 0;
-	for(int i=0;i<scene->getNumOfSpheres();i++){
-		//getSphere will become getGENERAL with GENERAL encompassing spheres, planes etc
-		tCurrent = scene->getSphere(i).getIntersectionParameter(lightRay, scene->getLight());
-		if(tCurrent<tMin && tCurrent!=0){
-			tMin = tCurrent;
-			iMin = i;
-		}
-	}
-
-	if(tMin!=CLIPPING_DISTANCE){
-		currentR = (float)scene->getSphere(iMin).getColour().r;
-		currentG = (float)scene->getSphere(iMin).getColour().g;
-		currentB = (float)scene->getSphere(iMin).getColour().b;
-	}
-
-	//testing will generalise later
-	tCurrent = scene->getPlane(iMin).getIntersectionParameter(lightRay, scene->getLight());
-	if(tCurrent<tMin && tCurrent!=0){
-		tMin = tCurrent;
-		currentR=(float)scene->getPlane(0).getColour().r;
-		currentG=(float)scene->getPlane(0).getColour().g;
-		currentB=(float)scene->getPlane(0).getColour().b;
-	}
-
-	
-
-	bool isShadowed = scene->getSphere(iMin).getShadowedStatus(lightRay, tMin, scene->getLight());
-
-	float distance = lightRay.calculateDistance(tMin);
-
-	colour_t currentColour;
-	if(!isShadowed){
-		currentColour.r = (int)(currentR*distance*BRIGHTNESS)/255;
-		currentColour.g = (int)(currentG*distance*BRIGHTNESS)/255;
-		currentColour.b = (int)(currentB*distance*BRIGHTNESS)/255;
-	}else{
-		currentColour.r = (int)(currentR*distance*BRIGHTNESS/2)/255;
-		currentColour.g = (int)(currentG*distance*BRIGHTNESS/2)/255;
-		currentColour.b = (int)(currentB*distance*BRIGHTNESS/2)/255;
-	}
-	return currentColour;
+	Ray ray(lightRay, scene);
+	return ray.raytrace();
 }
-
-
 
 void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene){
 	SDL_Rect r;
