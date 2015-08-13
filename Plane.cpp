@@ -49,6 +49,7 @@ float Plane::getIntersectionParameter(vector_t lightRay, Light light){
 	}
 }
 
+//for self shadowing only (isShadowed)
 bool Plane::getShadowedStatus(vector_t lightRay, float t, Light light){
 	vertex_t pos = lightRay.getPosAtParameter(t);
 	vector_t lightVector(pos.x, pos.y, pos.z, light.getPos().x-pos.x, light.getPos().y-pos.y, light.getPos().z-pos.z);
@@ -61,7 +62,13 @@ bool Plane::getShadowedStatus(vector_t lightRay, float t, Light light){
 	}
 }
 
-vector_t Plane::getNormal(vertex_t pos){
+//TODO:CURRENTLY UNUSED FEATURE - NORMAL RETURNED IN THE SAME DIRECTION AS REFLECTED RAY
+vector_t Plane::getNormal(vertex_t pos, vector_t incoming){
+	//if(normal.directionDotProduct(incoming)>0){
+	//	normal.xt = -1*normal.xt;
+	//	normal.yt = -1*normal.yt;
+	//	normal.zt = -1*normal.zt;
+	//}
 	normal.x0 = pos.x;
 	normal.y0 = pos.y;
 	normal.z0 = pos.z;

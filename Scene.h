@@ -1,8 +1,10 @@
+#pragma once
 #include "Camera.h"
 #include "Light.h"
 #include "Sphere.h"
 #include "Plane.h"
-#pragma once
+#include "stdlib.h"
+#include "stdio.h"
 
 class Scene
 {
@@ -23,6 +25,8 @@ public:
 	Light getLight(void);
 	void addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col);
 	void addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour);
+	//THIS IS SETLIGHT FOR NOW - CAN ONLY HANDLE 1 LIGHT
+	void addLight(float posX, float posY, float posZ, float intensity);
 	int getNumOfMeshes(void);
 	~Scene(void);
 };

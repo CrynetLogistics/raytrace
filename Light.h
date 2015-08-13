@@ -6,10 +6,8 @@ private:
 	vertex_t pos;
 	float intensity;
 public:
-	Light(void);
-	void setParams(float posX, float posY, float posZ, float intensity);
+	Light(float posX, float posY, float posZ, float intensity);
 	float getIntensity(void);
 	vertex_t getPos(void);
 	~Light(void);
 };
-

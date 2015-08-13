@@ -16,7 +16,7 @@ typedef struct vertex{
 //} vector_t;
 
 typedef struct colour{
-	int r;
-	int g;
-	int b;
+	float r;
+	float g;
+	float b;
 } colour_t;

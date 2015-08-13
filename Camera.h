@@ -1,5 +1,4 @@
 #pragma once
-#include "structures.h"
 #include "vector_t.h"
 class Camera
 {

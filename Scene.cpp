@@ -1,11 +1,8 @@
 #include "Scene.h"
-#include "Camera.h"
-#include "Light.h"
-#include "Sphere.h"
-#include "stdlib.h"
-#include "stdio.h"
 
+//default lamp
 Scene::Scene(void)
+	:light(0, 0, 10, 10)
 {
 	numOfSpheres = 0;
 	spheres = (Sphere*)calloc(1, sizeof(Sphere));
@@ -14,10 +11,11 @@ Scene::Scene(void)
 	meshes = (Mesh**)calloc(1, sizeof(Mesh*));
 }
 
-Scene::Scene(float lightX, float lightY, float lightZ, float intensity){
+Scene::Scene(float lightX, float lightY, float lightZ, float intensity)
+	:light(lightX, lightY, lightZ, intensity)
+{
 	numOfSpheres = 0;
 	spheres = (Sphere*)calloc(1, sizeof(Sphere));
-	light.setParams(lightX, lightY, lightZ, intensity);
 }
 
 Mesh* Scene::getMesh(int number){
@@ -57,6 +55,10 @@ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_
 
 	Mesh *m = p;
 	meshes[numOfMeshes-1] = m;
+}
+
+void Scene::addLight(float posX, float posY, float posZ, float intensity){
+	light = Light(posX, posY, posZ, intensity);
 }
 
 int Scene::getNumOfMeshes(void){

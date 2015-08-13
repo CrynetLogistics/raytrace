@@ -1,7 +1,4 @@
 #include "Sphere.h"
-#include "math.h"
-#include "Light.h"
-#include "vector_t.h"
 
 Sphere::Sphere(void)
 {
@@ -64,8 +61,14 @@ bool Sphere::getShadowedStatus(vector_t lightRay, float t, Light light){
 	}
 }
 
-vector_t Sphere::getNormal(vertex_t pos){
+//TODO:CURRENTLY UNUSED FEATURE - NORMAL RETURNED IN THE SAME DIRECTION AS REFLECTED RAY
+vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
 	vector_t normalVector(pos.x, pos.y, pos.z, pos.x-centre.x, pos.y-centre.y, pos.z-centre.z);
+	//if(normalVector.directionDotProduct(incoming)>0){
+	//	normalVector.xt = -1*normalVector.xt;
+	//	normalVector.yt = -1*normalVector.yt;
+	//	normalVector.zt = -1*normalVector.zt;
+	//}
 	return normalVector;
 }
 

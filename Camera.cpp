@@ -11,7 +11,7 @@ Camera::Camera(void)
 	central_direction.yt = 3;
 	central_direction.zt = 0;
 
-	gridSize = 0.01;
+	gridSize = (float)0.01;
 }
 
 float Camera::getGridSize(void){

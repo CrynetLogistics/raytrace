@@ -1,7 +1,4 @@
 #pragma once
-#include "structures.h"
-#include "vector_t.h"
-#include "Light.h"
 #include "Mesh.h"
 
 //v1 and v4 provided are on opposite sides of a diagonal
@@ -13,7 +10,7 @@ public:
 	float getIntersectionParameter(vector_t lightRay, Light light) override;
 	colour_t getColour(void) override;
 	bool getShadowedStatus(vector_t lightRay, float t, Light light) override;
-	vector_t getNormal(vertex_t pos) override;
+	vector_t getNormal(vertex_t pos, vector_t incoming) override;
 private:
 	vertex_t v1;
 	vertex_t v2;

@@ -1,5 +1,4 @@
 #include "vector_t.h"
-#include "math.h"
 
 vector_t::vector_t(void)
 {
