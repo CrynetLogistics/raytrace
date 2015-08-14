@@ -7,3 +7,7 @@
 16 - added shadowing for meshes AND introduced ray class for tracing
 18 - implemented multiple bounces for reflectivity and shadows
 20 - fixes
+23 - fixed artefacts due to epsilon error in Ray.h and Ray.cpp, renders now look great
+25 - fixed headers, file inclusions, added test objects, lamp initialisation fixed, 5.9s rendertime
+26 - additional rays added, 10.2s rendertime
+28 - major improvements to tracing, added reflectivity settings to Meshes, recursive reflections handled, 9.0s rendertime

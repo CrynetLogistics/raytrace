@@ -93,7 +93,7 @@ int main()
 }
 
 colour_t calculateIntensityFromIntersections(vector_t lightRay, Scene *scene){
-	Ray ray(lightRay, scene);
+	Ray ray(lightRay, scene, 2);
 	return ray.raytrace();
 }
 

@@ -18,10 +18,12 @@ private:
 	int rayNumber;
 	rayType_t rayType;
 	float totalDistance;
+	int MAX_BOUNCES;
+	float currentMeshReflectivity;
 
 	void nextRayBounce(void);
 public:
-	Ray(vector_t initial, Scene *scene);
+	Ray(vector_t initial, Scene *scene, int MAX_BOUNCES);
 	colour_t raytrace(void);
 	~Ray(void);
 };

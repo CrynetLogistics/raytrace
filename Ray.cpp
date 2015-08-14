@@ -1,10 +1,11 @@
 #include "Ray.h"
 
-#define BRIGHTNESS 8
-#define SHADOW_DIM_FACTOR 0.5
+#define BRIGHTNESS 4
 #define CLIPPING_DISTANCE 999
-#define MAX_BOUNCES 1
 #define EPSILON 0.001
+//REFLECTIVITY, SHADOW_DIM_FACTOR GOES FROM 0 TO 1
+#define REFLECTIVITY 0.5
+#define SHADOW_DIM_FACTOR 0.5
 
 /*
 LIFE CYCLE OF A RAY:
@@ -17,28 +18,24 @@ NOTE: Even if DIRECT is given to a ray, it can still encounter other objects
 that might obstruct its path in future - in this case, it will be given a 
 BACKSCATTER when that occurs
 */
-Ray::Ray(vector_t initial, Scene *scene)
+Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
 {
 	ray = initial;
 	this->scene = scene;
+	this->MAX_BOUNCES = MAX_BOUNCES;
 	pathColour.r = 0;
 	pathColour.g = 0;
 	pathColour.b = 0;
 	rayNumber = 0;
 	rayType = INITIAL;
 	totalDistance = 0;
+	currentMeshReflectivity = 1;
 }
 
 colour_t Ray::raytrace(void){
 	while(rayType!=CLIPPING && rayNumber-1<MAX_BOUNCES){
 		nextRayBounce();
 	}
-
-	//TODO: reduces intensity according to the number of bounces
-	//pathColour.r = pathColour.r/rayNumber;
-	//pathColour.g = pathColour.g/rayNumber;
-	//pathColour.b = pathColour.b/rayNumber;
-
 	return pathColour;
 }
 
@@ -47,7 +44,7 @@ void Ray::nextRayBounce(void){
 	float tMin = CLIPPING_DISTANCE;
 	float tCurrent = 0;
 	int iMin = 0;
-	
+
 	for(int i=0;i<scene->getNumOfMeshes();i++){
 
 		tCurrent = scene->getMesh(i)->getIntersectionParameter(ray, scene->getLight());
@@ -58,15 +55,13 @@ void Ray::nextRayBounce(void){
 		}
 	}
 
+	float intersectedMeshReflectivity;
 	colour_t intersectedMeshColour;
 	if(tMin!=CLIPPING_DISTANCE){ //NOT a clipping ray
 		intersectedMeshColour.r = scene->getMesh(iMin)->getColour().r;
 		intersectedMeshColour.g = scene->getMesh(iMin)->getColour().g;
 		intersectedMeshColour.b = scene->getMesh(iMin)->getColour().b;
 	}else{
-		pathColour.r /= 2;
-		pathColour.g /= 2;
-		pathColour.b /= 2;
 		rayType = CLIPPING;
 		return;
 	}
@@ -75,41 +70,71 @@ void Ray::nextRayBounce(void){
 	totalDistance += distance;
 	bool isShadowed = scene->getMesh(iMin)->getShadowedStatus(ray, tMin, scene->getLight());
 
+	if(rayType==BACKSCATTER){
+		pathColour.r += intersectedMeshColour.r*BRIGHTNESS*currentMeshReflectivity/(rayNumber*totalDistance);
+		pathColour.g += intersectedMeshColour.g*BRIGHTNESS*currentMeshReflectivity/(rayNumber*totalDistance);
+		pathColour.b += intersectedMeshColour.b*BRIGHTNESS*currentMeshReflectivity/(rayNumber*totalDistance);
+	}else if(rayType==DIRECT){
+		pathColour.r += intersectedMeshColour.r*BRIGHTNESS/(rayNumber*totalDistance);
+		pathColour.g += intersectedMeshColour.g*BRIGHTNESS/(rayNumber*totalDistance);
+		pathColour.b += intersectedMeshColour.b*BRIGHTNESS/(rayNumber*totalDistance);
+	}else if(rayType==INITIAL){
+		pathColour.r += intersectedMeshColour.r*BRIGHTNESS/(rayNumber*totalDistance);
+		pathColour.g += intersectedMeshColour.g*BRIGHTNESS/(rayNumber*totalDistance);
+		pathColour.b += intersectedMeshColour.b*BRIGHTNESS/(rayNumber*totalDistance);
+	}
 	
+	currentMeshReflectivity = scene->getMesh(iMin)->getReflectivity();
 
+	//UPDATE PRIMARY LIGHTING
 	if(isShadowed){//backscatter by itself
-		rayType = BACKSCATTER;
-		pathColour.r /= 5;
-		pathColour.g /= 5;
-		pathColour.b /= 5;
-		pathColour.r += (intersectedMeshColour.r*BRIGHTNESS*SHADOW_DIM_FACTOR/(rayNumber*totalDistance));
-		pathColour.g += (intersectedMeshColour.g*BRIGHTNESS*SHADOW_DIM_FACTOR/(rayNumber*totalDistance));
-		pathColour.b += (intersectedMeshColour.b*BRIGHTNESS*SHADOW_DIM_FACTOR/(rayNumber*totalDistance));
+		rayType = BACKSCATTER;//THIS CORRESPONDS TO THE REFLECTED RAY TYPE
+		pathColour.r /= 10*(1-SHADOW_DIM_FACTOR);
+		pathColour.g /= 10*(1-SHADOW_DIM_FACTOR);
+		pathColour.b /= 10*(1-SHADOW_DIM_FACTOR);
+		
+		
 	}else{//continue to light - but path can be blocked by another object
-		rayType = DIRECT;
-		pathColour.r += (intersectedMeshColour.r*BRIGHTNESS/(rayNumber*totalDistance));
-		pathColour.g += (intersectedMeshColour.g*BRIGHTNESS/(rayNumber*totalDistance));
-		pathColour.b += (intersectedMeshColour.b*BRIGHTNESS/(rayNumber*totalDistance));
+		rayType = DIRECT;//THIS CORRESPONDS TO THE REFLECTED RAY TYPE
+		//pathColour.r += intersectedMeshColour.r*BRIGHTNESS/(rayNumber*totalDistance);
+		//pathColour.g += intersectedMeshColour.g*BRIGHTNESS/(rayNumber*totalDistance);
+		//pathColour.b += intersectedMeshColour.b*BRIGHTNESS/(rayNumber*totalDistance);
 	}
 
+
+
+	vector_t normalRay = scene->getMesh(iMin)->getNormal(ray.getPosAtParameter(tMin), ray);
+	vector_t directRay;
+	vertex_t pos = ray.getPosAtParameter(tMin);
+	directRay.x0 = pos.x;
+	directRay.y0 = pos.y;
+	directRay.z0 = pos.z;
+	vertex_t lightPos = scene->getLight().getPos();
+	directRay.xt = lightPos.x - pos.x;
+	directRay.yt = lightPos.y - pos.y;
+	directRay.zt = lightPos.z - pos.z;
+
+
+
+	//SET RAY FOR NEXT SCATTER AND PREPROCESS SECONDARY LIGHTING FOR NEXT RAY
 	switch(rayType){
 	case BACKSCATTER:
 	{
 		//reestablishes the normal the the point of intersection for next ray bounce
 		//TODO: WHICH DIRECTION ARE THESE NORMALS POINTING??? - is this a source of error?
-		ray = scene->getMesh(iMin)->getNormal(ray.getPosAtParameter(tMin), ray);
+		ray = normalRay;
+
 		break;
 	}
 	case DIRECT:
 	{
-		vertex_t pos = ray.getPosAtParameter(tMin);
-		ray.x0 = pos.x;
-		ray.y0 = pos.y;
-		ray.z0 = pos.z;
-		vertex_t lightPos = scene->getLight().getPos();
-		ray.xt = lightPos.x - pos.x;
-		ray.yt = lightPos.y - pos.y;
-		ray.zt = lightPos.z - pos.z;
+		ray = directRay;
+
+		Ray secondaryNormalRay(normalRay, scene, MAX_BOUNCES-1);
+		colour_t secondaryColour = secondaryNormalRay.raytrace();
+		pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity;
+		pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity;
+		pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity;
 		break;
 	}
 	default:

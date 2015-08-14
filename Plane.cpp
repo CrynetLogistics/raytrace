@@ -22,6 +22,7 @@ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour
 	c = normal.zt;
 	d = normal.directionDotProduct(vector_t(0,0,0,v1.x,v1.y,v1.z));
 	this->normal = normal;
+	reflectivity = 1;
 }
 
 float Plane::getIntersectionParameter(vector_t lightRay, Light light){
@@ -77,6 +78,10 @@ vector_t Plane::getNormal(vertex_t pos, vector_t incoming){
 
 colour_t Plane::getColour(void){
 	return colour;
+}
+
+float Plane::getReflectivity(void){
+	return reflectivity;
 }
 
 Plane::~Plane(void)

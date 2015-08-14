@@ -19,6 +19,7 @@ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour
 	this->colour.r = colour.r;
 	this->colour.g = colour.g;
 	this->colour.b = colour.b;
+	reflectivity = 0.3;
 }
 
 float Sphere::getRadius(void){
@@ -72,8 +73,12 @@ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
 	return normalVector;
 }
 
-colour_t Sphere::getColour(){
+colour_t Sphere::getColour(void){
 	return colour;
+}
+
+float Sphere::getReflectivity(void){
+	return reflectivity;
 }
 
 Sphere::~Sphere(void)
