@@ -3,7 +3,7 @@
 //TODO:HANDLE PARALLELOGRAMS AND NO PLANAR SURFACES
 //TODO:INFER VERTEX4 FROM V1,2,3 AND SQUARE PROPERTY
 
-Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour)
+Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity)
 {
 	this->v1 = v1;
 	this->v2 = v2;
@@ -22,7 +22,7 @@ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour
 	c = normal.zt;
 	d = normal.directionDotProduct(vector_t(0,0,0,v1.x,v1.y,v1.z));
 	this->normal = normal;
-	reflectivity = 1;
+	this->reflectivity = reflectivity;
 }
 
 float Plane::getIntersectionParameter(vector_t lightRay, Light light){
@@ -51,15 +51,15 @@ float Plane::getIntersectionParameter(vector_t lightRay, Light light){
 }
 
 //for self shadowing only (isShadowed)
-bool Plane::getShadowedStatus(vector_t lightRay, float t, Light light){
+float Plane::getShadowedStatus(vector_t lightRay, float t, Light light){
 	vertex_t pos = lightRay.getPosAtParameter(t);
 	vector_t lightVector(pos.x, pos.y, pos.z, light.getPos().x-pos.x, light.getPos().y-pos.y, light.getPos().z-pos.z);
 	vector_t cameraVector(pos.x, pos.y, pos.z, -1*lightRay.xt, -1*lightRay.yt, -1*lightRay.zt);
 	float index = normal.directionDotProduct(cameraVector)*normal.directionDotProduct(lightVector);
 	if(index>0){
-		return false;
+		return -1;
 	}else{
-		return true;
+		return 1;
 	}
 }
 

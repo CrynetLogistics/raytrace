@@ -19,6 +19,7 @@ public:
 	vertex_t getPosAtParameter(float t);
 	float directionDotProduct(vector_t dotterand);
 	vector_t directionCrossProduct(vector_t crosserand);
+	float directionMagnitude(void);
 	~vector_t(void);
 };
 

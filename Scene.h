@@ -23,8 +23,8 @@ public:
 	Mesh* getMesh(int number);
 	Plane getPlane(int number);
 	Light getLight(void);
-	void addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col);
-	void addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour);
+	void addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, float reflectivity);
+	void addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity);
 	//THIS IS SETLIGHT FOR NOW - CAN ONLY HANDLE 1 LIGHT
 	void addLight(float posX, float posY, float posZ, float intensity);
 	int getNumOfMeshes(void);

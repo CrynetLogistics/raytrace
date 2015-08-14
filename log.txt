@@ -11,3 +11,4 @@
 25 - fixed headers, file inclusions, added test objects, lamp initialisation fixed, 5.9s rendertime
 26 - additional rays added, 10.2s rendertime
 28 - major improvements to tracing, added reflectivity settings to Meshes, recursive reflections handled, 9.0s rendertime
+31 - implementation for dull materials, soft shadows, 9.3s rendertime

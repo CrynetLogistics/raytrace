@@ -53,6 +53,10 @@ vector_t vector_t::directionCrossProduct(vector_t crosserand){
 	return vector;
 }
 
+float vector_t::directionMagnitude(void){
+	return sqrt(xt*xt+yt*yt+zt*zt);
+}
+
 vector_t::~vector_t(void)
 {
 }

@@ -5,7 +5,7 @@
 #define EPSILON 0.001
 //REFLECTIVITY, SHADOW_DIM_FACTOR GOES FROM 0 TO 1
 #define REFLECTIVITY 0.5
-#define SHADOW_DIM_FACTOR 0.5
+#define SHADOW_DIM_FACTOR 0.9
 
 /*
 LIFE CYCLE OF A RAY:
@@ -68,7 +68,7 @@ void Ray::nextRayBounce(void){
 
 	float distance = ray.calculateDistance(tMin);
 	totalDistance += distance;
-	bool isShadowed = scene->getMesh(iMin)->getShadowedStatus(ray, tMin, scene->getLight());
+	float isShadowed = scene->getMesh(iMin)->getShadowedStatus(ray, tMin, scene->getLight());
 
 	if(rayType==BACKSCATTER){
 		pathColour.r += intersectedMeshColour.r*BRIGHTNESS*currentMeshReflectivity/(rayNumber*totalDistance);
@@ -87,18 +87,14 @@ void Ray::nextRayBounce(void){
 	currentMeshReflectivity = scene->getMesh(iMin)->getReflectivity();
 
 	//UPDATE PRIMARY LIGHTING
-	if(isShadowed){//backscatter by itself
+	if(isShadowed > 0){//backscatter by itself
 		rayType = BACKSCATTER;//THIS CORRESPONDS TO THE REFLECTED RAY TYPE
-		pathColour.r /= 10*(1-SHADOW_DIM_FACTOR);
-		pathColour.g /= 10*(1-SHADOW_DIM_FACTOR);
-		pathColour.b /= 10*(1-SHADOW_DIM_FACTOR);
-		
+		pathColour.r *= (1-currentMeshReflectivity/2)*(1-abs(isShadowed));
+		pathColour.g *= (1-currentMeshReflectivity/2)*(1-abs(isShadowed));
+		pathColour.b *= (1-currentMeshReflectivity/2)*(1-abs(isShadowed));
 		
 	}else{//continue to light - but path can be blocked by another object
 		rayType = DIRECT;//THIS CORRESPONDS TO THE REFLECTED RAY TYPE
-		//pathColour.r += intersectedMeshColour.r*BRIGHTNESS/(rayNumber*totalDistance);
-		//pathColour.g += intersectedMeshColour.g*BRIGHTNESS/(rayNumber*totalDistance);
-		//pathColour.b += intersectedMeshColour.b*BRIGHTNESS/(rayNumber*totalDistance);
 	}
 
 
@@ -135,6 +131,14 @@ void Ray::nextRayBounce(void){
 		pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity;
 		pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity;
 		pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity;
+
+		//SPECULARITY
+		float cosine = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
+		if(cosine>0.99){
+			pathColour.r *= 2-(1-cosine)*100;
+			pathColour.g *= 2-(1-cosine)*100;
+			pathColour.b *= 2-(1-cosine)*100;
+		}
 		break;
 	}
 	default:

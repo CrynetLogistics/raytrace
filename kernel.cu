@@ -32,51 +32,54 @@ int main()
 
 
 
-	colour_t col1;
-	col1.r = 150;
-	col1.g = 0;
-	col1.b = 0;
-	colour_t col2;
-	col2.r = 255;
-	col2.g = 77;
-	col2.b = 99;
-	colour_t col3;
-	col3.r = 15;
-	col3.g = 240;
-	col3.b = 88;
-	colour_t col4;
-	col4.r = 12;
-	col4.g = 37;
-	col4.b = 255;
+	colour_t dark_red;
+	dark_red.r = 150;
+	dark_red.g = 0;
+	dark_red.b = 0;
+	colour_t soft_red;
+	soft_red.r = 255;
+	soft_red.g = 77;
+	soft_red.b = 99;
+	colour_t bright_green;
+	bright_green.r = 15;
+	bright_green.g = 240;
+	bright_green.b = 88;
+	colour_t cold_blue;
+	cold_blue.r = 12;
+	cold_blue.g = 37;
+	cold_blue.b = 255;
 
 
 	vertex_t v1;
 	vertex_t v2;
 	vertex_t v3;
 	vertex_t v4;
-	v1.x = -30;v1.y = 0;v1.z = -3;
-	v2.x = 30;v2.y = 0;v2.z = -3;
-	v3.x = -30;v3.y = 50;v3.z = -3;
-	v4.x = 30;v4.y = 50;v4.z = -3;
-
 	vertex_t v5;
 	vertex_t v6;
 	vertex_t v7;
 	vertex_t v8;
-	v5.x = -30;v5.y = 50;v5.z = -3;
-	v6.x = 30;v6.y = 50;v6.z = -3;
-	v7.x = -30;v7.y = 50;v7.z = 50;
-	v8.x = 30;v8.y = 50;v8.z = 50;
+
+	v1.x = -30;v1.y = 0;v1.z = -3;
+	v2.x = 30;v2.y = 0;v2.z = -3;
+	v3.x = -30;v3.y = 50;v3.z = -3;
+	v4.x = 30;v4.y = 50;v4.z = -3;
+	v5.x = -30;v5.y = 50;v5.z = 30;
+	v6.x = 30;v6.y = 50;v6.z = 30;
+	v7.x = -30;v7.y = 0;v7.z = 30;
+	v8.x = 30;v8.y = 0;v8.z = 30;
 
 
 	Scene scene;
 	scene.addLight(-1,8,6,10);
-	scene.addPlane(v1,v2,v3,v4,col3);
-	scene.addPlane(v5,v6,v7,v8,col3);
-	scene.addSphere(2,10,5,2.5,col1);
-	scene.addSphere(6,9,3,3,col4);
-	scene.addSphere(-5,6,0,2,col2);
-	scene.addSphere(-9,8,3,3,col3);
+	scene.addPlane(v1,v2,v3,v4,bright_green,1);
+	scene.addPlane(v3,v4,v5,v6,bright_green,1);
+	//scene.addPlane(v7,v8,v5,v6,bright_green,1);
+	//scene.addPlane(v1,v3,v5,v7,bright_green,1);
+	//scene.addPlane(v2,v4,v6,v8,bright_green,1);
+	scene.addSphere(2,10,5,2.5,dark_red,1);
+	scene.addSphere(6,9,3,3,cold_blue,1);
+	scene.addSphere(-5,6,0,2,soft_red,0);
+	scene.addSphere(-9,8,3,3,bright_green,1);
 
 	//CALL OUR DRAW LOOP FUNCTION
 	drawPixelRaytracer(renderer, &scene);
