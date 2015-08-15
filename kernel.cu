@@ -11,9 +11,11 @@
 #undef main
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
+#define RENDER_SQUARE_SIZE 80
 #define DISPLAY_TIME 30000
+#define MAX_ITERATIONS 4
 
-void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene);
+void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene, int x, int y, int squareSize);
 
 int main()
 {
@@ -41,9 +43,9 @@ int main()
 	soft_red.g = 77;
 	soft_red.b = 99;
 	colour_t bright_green;
-	bright_green.r = 15;
-	bright_green.g = 240;
-	bright_green.b = 88;
+	bright_green.r = 33;
+	bright_green.g = 255;
+	bright_green.b = 108;
 	colour_t cold_blue;
 	cold_blue.r = 12;
 	cold_blue.g = 37;
@@ -71,22 +73,27 @@ int main()
 
 	Scene scene;
 	scene.addLight(-1,8,6,10);
-	scene.addPlane(v1,v2,v3,v4,bright_green,1);
-	scene.addPlane(v3,v4,v5,v6,bright_green,1);
-	//scene.addPlane(v7,v8,v5,v6,bright_green,1);
-	//scene.addPlane(v1,v3,v5,v7,bright_green,1);
-	//scene.addPlane(v2,v4,v6,v8,bright_green,1);
-	scene.addSphere(2,10,5,2.5,dark_red,1);
-	scene.addSphere(6,9,3,3,cold_blue,1);
-	scene.addSphere(-5,6,0,2,soft_red,0);
-	scene.addSphere(-9,8,3,3,bright_green,1);
-
-	//CALL OUR DRAW LOOP FUNCTION
-	drawPixelRaytracer(renderer, &scene);
+	scene.addPlane(v1,v2,v3,v4,bright_green,1,false);
+	scene.addPlane(v3,v4,v5,v6,bright_green,1,false);
+	//scene.addPlane(v7,v8,v5,v6,bright_green,1,false);
+	//scene.addPlane(v1,v3,v5,v7,bright_green,1,false);
+	//scene.addPlane(v2,v4,v6,v8,bright_green,1,false);
+	scene.addSphere(2,10,5,2.5,dark_red,1,false);
+	scene.addSphere(6,9,3,3,cold_blue,1,false);
+	scene.addSphere(-2,6,0,2,soft_red,1,true);
+	scene.addSphere(-9,8,3,3,bright_green,1,false);
 
 
+	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
+		for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
+			//CALL OUR DRAW LOOP FUNCTION
+			drawPixelRaytracer(renderer, &scene, i, j, RENDER_SQUARE_SIZE);
+			SDL_RenderPresent(renderer);
+		}
+	}
 
-	SDL_RenderPresent(renderer);
+	printf("done");
+
 	SDL_Delay(DISPLAY_TIME);
 	//Destroy window
     SDL_DestroyWindow(window);
@@ -96,11 +103,12 @@ int main()
 }
 
 colour_t calculateIntensityFromIntersections(vector_t lightRay, Scene *scene){
-	Ray ray(lightRay, scene, 2);
+	Ray ray(lightRay, scene, MAX_ITERATIONS);
 	return ray.raytrace();
 }
 
-void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene){
+//where x and y are the top left most coordinates and squareSize is one block being rendered
+void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene, int x, int y, int squareSize){
 	SDL_Rect r;
 	r.h = 1;
 	r.w = 1;
@@ -108,8 +116,8 @@ void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene){
 	vector_t locDir = scene->getCamera().getLocDir();
 	float ZOOM_FACTOR = scene->getCamera().getGridSize();
 
-	for(int i=0;i<SCREEN_WIDTH;i++){
-		for(int j=0;j<SCREEN_HEIGHT;j++){
+	for(int i=x*squareSize;i<(x+1)*squareSize;i++){
+		for(int j=y*squareSize;j<(y+1)*squareSize;j++){
 			r.x = i;
 			r.y = j;
 

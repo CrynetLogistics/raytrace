@@ -36,22 +36,22 @@ Plane Scene::getPlane(int number){
 	return *plane;
 }
 
-void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, float reflectivity){
+void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, float reflectivity, bool isTransmission){
 
 	numOfMeshes++;
 	meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
 
-	Sphere *t = new Sphere(centreX, centreY, centreZ, radius, col, reflectivity);
+	Sphere *t = new Sphere(centreX, centreY, centreZ, radius, col, reflectivity, isTransmission);
 
 	Mesh *m = t;
 	meshes[numOfMeshes-1] = m;
 }
 
-void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity){
+void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity, bool isTransmission){
 	numOfMeshes++;
 	meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
 
-	Plane *p = new Plane(v1, v2, v3, v4, colour, reflectivity);
+	Plane *p = new Plane(v1, v2, v3, v4, colour, reflectivity, isTransmission);
 
 	Mesh *m = p;
 	meshes[numOfMeshes-1] = m;

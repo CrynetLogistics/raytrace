@@ -3,7 +3,7 @@
 //TODO:HANDLE PARALLELOGRAMS AND NO PLANAR SURFACES
 //TODO:INFER VERTEX4 FROM V1,2,3 AND SQUARE PROPERTY
 
-Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity)
+Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity, bool isTransmission)
 {
 	this->v1 = v1;
 	this->v2 = v2;
@@ -23,6 +23,7 @@ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour
 	d = normal.directionDotProduct(vector_t(0,0,0,v1.x,v1.y,v1.z));
 	this->normal = normal;
 	this->reflectivity = reflectivity;
+	this->isTransmission = isTransmission;
 }
 
 float Plane::getIntersectionParameter(vector_t lightRay, Light light){
@@ -82,6 +83,10 @@ colour_t Plane::getColour(void){
 
 float Plane::getReflectivity(void){
 	return reflectivity;
+}
+
+bool Plane::getTransmission(void){
+	return isTransmission;
 }
 
 Plane::~Plane(void)

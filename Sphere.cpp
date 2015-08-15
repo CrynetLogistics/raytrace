@@ -1,6 +1,6 @@
 #include "Sphere.h"
 
-Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, float reflectivity){
+Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, float reflectivity, bool isTransmission){
 	centre.x = centreX;
 	centre.y = centreY;
 	centre.z = centreZ;
@@ -9,6 +9,7 @@ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour
 	this->colour.g = colour.g;
 	this->colour.b = colour.b;
 	this->reflectivity = reflectivity;
+	this->isTransmission = isTransmission;
 }
 
 float Sphere::getRadius(void){
@@ -71,6 +72,10 @@ colour_t Sphere::getColour(void){
 
 float Sphere::getReflectivity(void){
 	return reflectivity;
+}
+
+bool Sphere::getTransmission(void){
+	return isTransmission;
 }
 
 Sphere::~Sphere(void)
