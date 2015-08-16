@@ -1,5 +1,5 @@
 #pragma once
-#include "vector_t.h"
+#include "Auxiliary/vector_t.h"
 #include "Scene.h"
 
 //INITAL RAY FROM CAMERA
@@ -22,6 +22,7 @@ private:
 	int MAX_BOUNCES;
 	float currentMeshReflectivity;
 	float specularityHighlight;
+	int currentMeshIndex;
 
 	void nextRayBounce(void);
 public:

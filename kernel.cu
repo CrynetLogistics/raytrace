@@ -3,10 +3,11 @@
 #include "stdio.h"
 #include "math.h"
 #include "Scene.h"
-#include "structures.h"
-#include "vector_t.h"
-#include "Plane.h"
+#include "Auxiliary/structures.h"
+#include "Auxiliary/vector_t.h"
+#include "Objects/Plane.h"
 #include "Ray.h"
+#include "Auxiliary/Material.h"
 
 #undef main
 #define SCREEN_WIDTH 1280
@@ -73,15 +74,15 @@ int main()
 
 	Scene scene;
 	scene.addLight(-1,8,6,10);
-	scene.addPlane(v1,v2,v3,v4,bright_green,1,false);
-	scene.addPlane(v3,v4,v5,v6,bright_green,1,false);
+	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
+	scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	//scene.addPlane(v7,v8,v5,v6,bright_green,1,false);
 	//scene.addPlane(v1,v3,v5,v7,bright_green,1,false);
 	//scene.addPlane(v2,v4,v6,v8,bright_green,1,false);
-	scene.addSphere(2,10,5,2.5,dark_red,1,false);
-	scene.addSphere(6,9,3,3,cold_blue,1,false);
-	scene.addSphere(-2,6,0,2,soft_red,1,true);
-	scene.addSphere(-9,8,3,3,bright_green,1,false);
+	scene.addSphere(2,10,5,2.5,dark_red,SHINY);
+	scene.addSphere(6,9,3,3,cold_blue,SHINY);
+	scene.addSphere(-2,6,0,2,soft_red,WATER);
+	scene.addSphere(-9,8,3,3,bright_green,SHINY);
 
 
 	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){

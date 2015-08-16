@@ -1,6 +1,7 @@
 #pragma once
 #include "Light.h"
-#include "vector_t.h"
+#include "../Auxiliary/vector_t.h"
+#include "../Auxiliary/Material.h"
 
 class Mesh
 {
@@ -10,7 +11,6 @@ public:
 	virtual colour_t getColour(void) = 0;
 	virtual float getShadowedStatus(vector_t lightRay, float t, Light light) = 0;
 	virtual vector_t getNormal(vertex_t pos, vector_t incoming) = 0;
-	virtual float getReflectivity(void) = 0;
-	virtual bool getTransmission(void) = 0;
+	virtual Material getMaterial(void) = 0;
 	~Mesh(void);
 };

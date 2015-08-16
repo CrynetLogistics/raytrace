@@ -10,8 +10,7 @@ private:
 	vertex_t v3;
 	vertex_t v4;
 	colour_t colour;
-	float reflectivity;
-	bool isTransmission;
+	Material material;
 	//FOR EQUATION: ax+by+cz=d
 	vector_t normal;
 	float a;
@@ -19,14 +18,13 @@ private:
 	float c;
 	float d;
 public:
-	Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity, bool isTransmission);
+	Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material);
 	~Plane(void);
 	float getIntersectionParameter(vector_t lightRay, Light light) override;
 	colour_t getColour(void) override;
 	float getShadowedStatus(vector_t lightRay, float t, Light light) override;
 	vector_t getNormal(vertex_t pos, vector_t incoming) override;
-	float getReflectivity(void) override;
-	bool getTransmission(void) override;
+	Material getMaterial(void) override;
 
 //public:
 //	bool getShadowedStatus(vector_t lightRay, float t, Light light);

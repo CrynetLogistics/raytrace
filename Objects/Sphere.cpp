@@ -1,6 +1,8 @@
 #include "Sphere.h"
 
-Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, float reflectivity, bool isTransmission){
+Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material)
+	:material(material)
+{
 	centre.x = centreX;
 	centre.y = centreY;
 	centre.z = centreZ;
@@ -8,8 +10,7 @@ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour
 	this->colour.r = colour.r;
 	this->colour.g = colour.g;
 	this->colour.b = colour.b;
-	this->reflectivity = reflectivity;
-	this->isTransmission = isTransmission;
+	this->material = material;
 }
 
 float Sphere::getRadius(void){
@@ -70,12 +71,8 @@ colour_t Sphere::getColour(void){
 	return colour;
 }
 
-float Sphere::getReflectivity(void){
-	return reflectivity;
-}
-
-bool Sphere::getTransmission(void){
-	return isTransmission;
+Material Sphere::getMaterial(void){
+	return material;
 }
 
 Sphere::~Sphere(void)

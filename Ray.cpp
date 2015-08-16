@@ -6,9 +6,9 @@
 //REFLECTIVITY, SHADOW_DIM_FACTOR GOES FROM 0 TO 1
 #define REFLECTIVITY 0.5
 #define SHADOW_DIM_FACTOR 0.9
-#define IOR 1.5 //(1,+inf) INDEX OF REFRACTION - NEVER EQUAL TO 1
 #define REFRACTION_BRIGHTNESS 0.5 //[0,1] higher = more prominence of reflections and refractions
 #define GLASS_CLARITY .6 //[0,1] higher = less of original colour
+#define IOR 1.5
 
 /*
 LIFE CYCLE OF A RAY:
@@ -34,6 +34,7 @@ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
 	totalDistance = 0;
 	currentMeshReflectivity = 1;
 	specularityHighlight = 0;
+	currentMeshIndex = -1;
 }
 
 colour_t Ray::raytrace(void){
@@ -77,8 +78,8 @@ void Ray::nextRayBounce(void){
 	float distance = ray.calculateDistance(tMin);
 	totalDistance += distance;
 	
-	currentMeshReflectivity = scene->getMesh(iMin)->getReflectivity();
-	bool isTransmission = scene->getMesh(iMin)->getTransmission();
+	currentMeshReflectivity = scene->getMesh(iMin)->getMaterial().getReflectivity();
+	bool isTransmission = scene->getMesh(iMin)->getMaterial().getTransmission();
 	float isShadowed = scene->getMesh(iMin)->getShadowedStatus(ray, tMin, scene->getLight());
 
 	if(rayType==BACKSCATTER){
@@ -212,6 +213,8 @@ void Ray::nextRayBounce(void){
 		printf("ERROR: RAYS HAVE GONE HAYWIRE");
 		break;
 	}
+
+	currentMeshIndex = iMin;
 }
 
 Ray::~Ray(void)

@@ -16,3 +16,6 @@
 34 - TRANSMISSION added, glass materials coming, 11.3s rendertime - but bounces doubled to 4
 35 - glass material with refractions added
 36 - glass material now includes refraction upon exiting the mesh
+37 - specularity fix
+39 - added Materials class
+42 - separated files to folders

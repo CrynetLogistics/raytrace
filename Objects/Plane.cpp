@@ -3,7 +3,8 @@
 //TODO:HANDLE PARALLELOGRAMS AND NO PLANAR SURFACES
 //TODO:INFER VERTEX4 FROM V1,2,3 AND SQUARE PROPERTY
 
-Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, float reflectivity, bool isTransmission)
+Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material)
+	:material(material)
 {
 	this->v1 = v1;
 	this->v2 = v2;
@@ -13,8 +14,6 @@ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour
 	this->colour = colour;
 	vector_t side1(v1,v2);
 	vector_t side2(v1,v3);
-	//vector_t side3(v4,v2);
-	//vector_t side4(v4,v3);
 
 	vector_t normal = side1.directionCrossProduct(side2);
 	a = normal.xt;
@@ -22,8 +21,7 @@ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour
 	c = normal.zt;
 	d = normal.directionDotProduct(vector_t(0,0,0,v1.x,v1.y,v1.z));
 	this->normal = normal;
-	this->reflectivity = reflectivity;
-	this->isTransmission = isTransmission;
+	this->material = material;
 }
 
 float Plane::getIntersectionParameter(vector_t lightRay, Light light){
@@ -81,12 +79,8 @@ colour_t Plane::getColour(void){
 	return colour;
 }
 
-float Plane::getReflectivity(void){
-	return reflectivity;
-}
-
-bool Plane::getTransmission(void){
-	return isTransmission;
+Material Plane::getMaterial(void){
+	return material;
 }
 
 Plane::~Plane(void)

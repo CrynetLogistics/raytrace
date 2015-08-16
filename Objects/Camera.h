@@ -1,5 +1,5 @@
 #pragma once
-#include "vector_t.h"
+#include "../Auxiliary/vector_t.h"
 class Camera
 {
 private:
