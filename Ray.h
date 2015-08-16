@@ -21,6 +21,7 @@ private:
 	float totalDistance;
 	int MAX_BOUNCES;
 	float currentMeshReflectivity;
+	float specularityHighlight;
 
 	void nextRayBounce(void);
 public:

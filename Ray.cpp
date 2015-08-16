@@ -6,7 +6,9 @@
 //REFLECTIVITY, SHADOW_DIM_FACTOR GOES FROM 0 TO 1
 #define REFLECTIVITY 0.5
 #define SHADOW_DIM_FACTOR 0.9
-#define IOR 1.5
+#define IOR 1.5 //(1,+inf) INDEX OF REFRACTION - NEVER EQUAL TO 1
+#define REFRACTION_BRIGHTNESS 0.5 //[0,1] higher = more prominence of reflections and refractions
+#define GLASS_CLARITY .6 //[0,1] higher = less of original colour
 
 /*
 LIFE CYCLE OF A RAY:
@@ -31,11 +33,18 @@ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
 	rayType = INITIAL;
 	totalDistance = 0;
 	currentMeshReflectivity = 1;
+	specularityHighlight = 0;
 }
 
 colour_t Ray::raytrace(void){
 	while((rayType!=CLIPPING && rayNumber-1<MAX_BOUNCES) || rayType==TRANSMISSION){
 		nextRayBounce();
+	}
+	//add specularity highlights if appropiate
+	if(specularityHighlight>0.99){
+		pathColour.r *= 2-(1-specularityHighlight)*100;
+		pathColour.g *= 2-(1-specularityHighlight)*100;
+		pathColour.b *= 2-(1-specularityHighlight)*100;
 	}
 	return pathColour;
 }
@@ -43,12 +52,11 @@ colour_t Ray::raytrace(void){
 void Ray::nextRayBounce(void){
 	rayNumber++;
 	float tMin = CLIPPING_DISTANCE;
-	float tCurrent = 0;
 	int iMin = 0;
 
 	for(int i=0;i<scene->getNumOfMeshes();i++){
 
-		tCurrent = scene->getMesh(i)->getIntersectionParameter(ray, scene->getLight());
+		float tCurrent = scene->getMesh(i)->getIntersectionParameter(ray, scene->getLight());
 
 		if(EPSILON<tCurrent && tCurrent<tMin && tCurrent!=0){
 			tMin = tCurrent;
@@ -56,7 +64,6 @@ void Ray::nextRayBounce(void){
 		}
 	}
 
-	float intersectedMeshReflectivity;
 	colour_t intersectedMeshColour;
 	if(tMin!=CLIPPING_DISTANCE){ //NOT a clipping ray
 		intersectedMeshColour.r = scene->getMesh(iMin)->getColour().r;
@@ -92,9 +99,9 @@ void Ray::nextRayBounce(void){
 		//also needs to force TRANSMISSION off when light is exiting
 		isTransmission = false;
 		rayType = BACKSCATTER;
-		pathColour.r *=2;
-		pathColour.g *=2;
-		pathColour.b *=2;
+		pathColour.r *= 1.5+2*REFRACTION_BRIGHTNESS;
+		pathColour.g *= 1.5+2*REFRACTION_BRIGHTNESS;
+		pathColour.b *= 1.5+2*REFRACTION_BRIGHTNESS;
 		//////////////////////////////FORCE LEAVE GLASS MATERIAL REVERSE SNELLS LAW
 		vertex_t pos = ray.getPosAtParameter(tMin);
 		vector_t transmissionRay;
@@ -119,9 +126,9 @@ void Ray::nextRayBounce(void){
 	//UPDATE PRIMARY LIGHTING
 	if(isTransmission){
 		rayType = TRANSMISSION;
-		pathColour.r -= 0.8*intersectedMeshColour.r*BRIGHTNESS/(rayNumber*totalDistance);
-		pathColour.g -= 0.8*intersectedMeshColour.g*BRIGHTNESS/(rayNumber*totalDistance);
-		pathColour.b -= 0.8*intersectedMeshColour.b*BRIGHTNESS/(rayNumber*totalDistance);
+		pathColour.r -= (0.6+0.4*GLASS_CLARITY)*intersectedMeshColour.r*BRIGHTNESS/(rayNumber*totalDistance);
+		pathColour.g -= (0.6+0.4*GLASS_CLARITY)*intersectedMeshColour.g*BRIGHTNESS/(rayNumber*totalDistance);
+		pathColour.b -= (0.6+0.4*GLASS_CLARITY)*intersectedMeshColour.b*BRIGHTNESS/(rayNumber*totalDistance);
 	}else if(isShadowed > 0){//backscatter by itself
 		rayType = BACKSCATTER;//THIS CORRESPONDS TO THE REFLECTED RAY TYPE
 		pathColour.r *= (1-currentMeshReflectivity/2)*(1-abs(isShadowed));
@@ -134,6 +141,7 @@ void Ray::nextRayBounce(void){
 
 
 	vector_t normalRay = scene->getMesh(iMin)->getNormal(ray.getPosAtParameter(tMin), ray);
+
 	vector_t directRay;
 	vertex_t pos = ray.getPosAtParameter(tMin);
 	directRay.x0 = pos.x;
@@ -143,8 +151,8 @@ void Ray::nextRayBounce(void){
 	directRay.xt = lightPos.x - pos.x;
 	directRay.yt = lightPos.y - pos.y;
 	directRay.zt = lightPos.z - pos.z;
-	//we'll set IOR = 1 for now so transparency
-	///////////////////////////////////////////////////////////////////////////FORCE ENTER GLASS MATERIAL SNELLS LAW
+
+	//////////////////////FORCE ENTER GLASS MATERIAL SNELLS LAW
 	vector_t transmissionRay;
 	vector_t reverseIncidence(0,0,0,-ray.xt,-ray.yt,-ray.zt);
 	float cosINCIDENCE = normalRay.directionDotProduct(reverseIncidence);
@@ -182,12 +190,7 @@ void Ray::nextRayBounce(void){
 		pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity;
 
 		//SPECULARITY
-		float cosine = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
-		if(cosine>0.99){
-			pathColour.r *= 2-(1-cosine)*100;
-			pathColour.g *= 2-(1-cosine)*100;
-			pathColour.b *= 2-(1-cosine)*100;
-		}
+		specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
 		break;
 	}
 	case TRANSMISSION:
@@ -202,13 +205,7 @@ void Ray::nextRayBounce(void){
 		pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity/3;
 
 		//SPECULARITY
-		float cosine = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
-		if(cosine>0.99){
-			pathColour.r *= 2-(1-cosine)*100;
-			pathColour.g *= 2-(1-cosine)*100;
-			pathColour.b *= 2-(1-cosine)*100;
-		}
-		
+		float specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
 		break;
 	}
 	default:
