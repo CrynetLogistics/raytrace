@@ -24,7 +24,7 @@ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour
 	this->material = material;
 }
 
-float Plane::getIntersectionParameter(vector_t lightRay, Light light){
+float Plane::getIntersectionParameter(vector_t lightRay){
 	float t;
 	vector_t lightSource(0,0,0,lightRay.x0,lightRay.y0,lightRay.z0);
 	vector_t lightDirection(0,0,0,lightRay.xt,lightRay.yt,lightRay.zt);

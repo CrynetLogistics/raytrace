@@ -21,7 +21,7 @@ vertex_t Sphere::getCentre(void){
 	return centre;
 }
 
-float Sphere::getIntersectionParameter(vector_t lightRay, Light light){
+float Sphere::getIntersectionParameter(vector_t lightRay){
 	float acx = lightRay.x0-centre.x;
 	float acy = lightRay.y0-centre.y;
 	float acz = lightRay.z0-centre.z;

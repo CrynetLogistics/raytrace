@@ -57,7 +57,7 @@ void Ray::nextRayBounce(void){
 
 	for(int i=0;i<scene->getNumOfMeshes();i++){
 
-		float tCurrent = scene->getMesh(i)->getIntersectionParameter(ray, scene->getLight());
+		float tCurrent = scene->getMesh(i)->getIntersectionParameter(ray);
 
 		if(EPSILON<tCurrent && tCurrent<tMin && tCurrent!=0){
 			tMin = tCurrent;
