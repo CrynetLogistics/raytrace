@@ -14,7 +14,7 @@
 #undef main
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define RENDER_SQUARE_SIZE 10
+#define RENDER_SQUARE_SIZE 80
 #define DISPLAY_TIME 30000
 #define MAX_ITERATIONS 4
 
@@ -56,15 +56,7 @@ int main()
     return 0;
 }
 
-//void calculateIntensityFromIntersections(vector_t* lightRay, Scene *scene, colour_t* colGrid, int gridSize){
-//	for(int i=0; i<gridSize; i++){
-//		Ray ray(lightRay[i], scene, MAX_ITERATIONS);
-//		colGrid[i] = ray.raytrace();
-//	}
-//}
-
 __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
-
 
 	colour_t dark_red;
 	dark_red.r = 150;
@@ -82,7 +74,6 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 	cold_blue.r = 12;
 	cold_blue.g = 37;
 	cold_blue.b = 255;
-
 
 	vertex_t v1;
 	vertex_t v2;
@@ -102,8 +93,7 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 	v7.x = -30;v7.y = 0;v7.z = 30;
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
-
-	Scene scene;// = (Scene*)malloc(sizeof(Scene));
+	Scene scene;
 	scene.addLight(-1,8,6,10);
 	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
@@ -118,12 +108,8 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 
 
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
-	//MAX_ITERATIONS 4
-	Ray ray(lightRay[index], &scene, 2);
+	Ray ray(lightRay[index], &scene, MAX_ITERATIONS);
 	colGrid[index] = ray.raytrace();
-	if(index>=11310){
-		//printf("%i\n",index);
-	}
 }
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
@@ -170,8 +156,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 
 	//calculateIntensityFromIntersections(thisLocDir, scene, col, squareSize*squareSize);
 	//CURRENTLY SPECIFIC TO 80 BLOCKS CHANGE THIS LOL
-	//cudaShootRays<<<5*5,16*16>>>(d_lightRay, d_colourGrid);
-	cudaShootRays<<<1,100>>>(d_lightRay, d_colourGrid);
+	cudaShootRays<<<25,256>>>(d_lightRay, d_colourGrid);
 
 	cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSize*squareSize, cudaMemcpyDeviceToHost);
 

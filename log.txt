@@ -19,4 +19,7 @@
 37 - specularity fix
 39 - added Materials class
 42 - separated files to folders
+45 - fixing, cleaning, prepping for CUDA implementation, 11.4s rendertime
 CrynetLogistics-CUDA upload - 46 - CUDA mostly working
+47 - a cuda work in progress
+50 - cuda working feature implementation work left
