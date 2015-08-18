@@ -6,8 +6,8 @@ private:
 	vertex_t pos;
 	float intensity;
 public:
-	Light(float posX, float posY, float posZ, float intensity);
-	float getIntensity(void);
-	vertex_t getPos(void);
-	~Light(void);
+	__host__ __device__ Light(float posX, float posY, float posZ, float intensity);
+	__host__ __device__ float getIntensity(void);
+	__host__ __device__ vertex_t getPos(void);
+	__host__ __device__ ~Light(void);
 };

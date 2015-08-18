@@ -1,6 +1,6 @@
 #include "Material.h"
 
-Material::Material(materialType_t material)
+__host__ __device__ Material::Material(materialType_t material)
 {
 	switch(material){
 	case GLASS:
@@ -22,14 +22,14 @@ Material::Material(materialType_t material)
 	}
 }
 
-float Material::getReflectivity(void){
+__host__ __device__ float Material::getReflectivity(void){
 	return reflectivity;
 }
 
-bool Material::getTransmission(void){
+__host__ __device__ bool Material::getTransmission(void){
 	return transmission;
 }
 
-Material::~Material(void)
+__host__ __device__ Material::~Material(void)
 {
 }

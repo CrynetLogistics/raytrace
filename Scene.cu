@@ -1,14 +1,14 @@
 #include "Scene.h"
 
 //default lamp
-Scene::Scene(void)
+__host__ Scene::Scene(void)
 	:light(0, 0, 10, 10)
 {
 	numOfMeshes = 0;
 	meshes = (Mesh**)calloc(1, sizeof(Mesh*));
 }
 
-Mesh* Scene::getMesh(int number){
+__host__ __device__ Mesh* Scene::getMesh(int number){
 	if(number<=numOfMeshes){
 		return meshes[number];
 	}else{
@@ -17,11 +17,11 @@ Mesh* Scene::getMesh(int number){
 	}
 }
 
-Camera Scene::getCamera(void){
+__host__ __device__ Camera Scene::getCamera(void){
 	return camera;
 }
 
-void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, Material material){
+__host__ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, Material material){
 
 	numOfMeshes++;
 	meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
@@ -32,7 +32,7 @@ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius,
 	meshes[numOfMeshes-1] = m;
 }
 
-void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material){
+__host__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material){
 	numOfMeshes++;
 	meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
 
@@ -42,19 +42,19 @@ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_
 	meshes[numOfMeshes-1] = m;
 }
 
-void Scene::addLight(float posX, float posY, float posZ, float intensity){
+__host__ __device__ void Scene::addLight(float posX, float posY, float posZ, float intensity){
 	light = Light(posX, posY, posZ, intensity);
 }
 
-int Scene::getNumOfMeshes(void){
+__host__ __device__ int Scene::getNumOfMeshes(void){
 	return numOfMeshes;
 }
 
-Light Scene::getLight(void){
+__host__ __device__ Light Scene::getLight(void){
 	return light;
 }
 
-Scene::~Scene(void)
+__host__ Scene::~Scene(void)
 {
 	free(meshes);
 }

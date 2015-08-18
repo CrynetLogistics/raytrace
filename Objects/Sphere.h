@@ -10,14 +10,14 @@ private:
 	float radius;
 	Material material;
 public:
-	vertex_t getCentre(void);
-	float getRadius(void);
-	float getIntersectionParameter(vector_t lightRay) override;
-	float getShadowedStatus(vector_t lightRay, float t, Light light) override;
-	vector_t getNormal(vertex_t pos, vector_t incoming) override;
-	Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material);
-	colour_t getColour(void) override;
-	Material getMaterial(void) override;
-	~Sphere(void);
+	__host__ __device__ vertex_t getCentre(void);
+	__host__ __device__ float getRadius(void);
+	__host__ __device__ float getIntersectionParameter(vector_t lightRay) override;
+	__host__ __device__ float getShadowedStatus(vector_t lightRay, float t, Light light) override;
+	__host__ __device__ vector_t getNormal(vertex_t pos, vector_t incoming) override;
+	__host__ __device__ Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material);
+	__host__ __device__ colour_t getColour(void) override;
+	__host__ __device__ Material getMaterial(void) override;
+	__host__ __device__ ~Sphere(void);
 };
 

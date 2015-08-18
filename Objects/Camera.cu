@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 
-Camera::Camera(void)
+__host__ __device__ Camera::Camera(void)
 {
 	central_direction.x0 = 0;
 	central_direction.y0 = 0;
@@ -14,14 +14,14 @@ Camera::Camera(void)
 	gridSize = (float)0.01;
 }
 
-float Camera::getGridSize(void){
+__host__ __device__ float Camera::getGridSize(void){
 	return gridSize;
 }
 
-vector_t Camera::getLocDir(void){
+__host__ __device__ vector_t Camera::getLocDir(void){
 	return central_direction;
 }
 
-Camera::~Camera(void)
+__host__ __device__ Camera::~Camera(void)
 {
 }

@@ -8,6 +8,8 @@
 #include "Objects/Plane.h"
 #include "Ray.h"
 #include "Auxiliary/Material.h"
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
 
 #undef main
 #define SCREEN_WIDTH 1280
@@ -103,9 +105,18 @@ int main()
     return 0;
 }
 
-colour_t calculateIntensityFromIntersections(vector_t lightRay, Scene *scene){
-	Ray ray(lightRay, scene, MAX_ITERATIONS);
-	return ray.raytrace();
+//void calculateIntensityFromIntersections(vector_t* lightRay, Scene *scene, colour_t* colGrid, int gridSize){
+//	for(int i=0; i<gridSize; i++){
+//		Ray ray(lightRay[i], scene, MAX_ITERATIONS);
+//		colGrid[i] = ray.raytrace();
+//	}
+//}
+
+__global__ void cudaShootRays(vector_t* lightRay, Scene* scene, colour_t* colGrid){
+	int index = blockDim.x * blockIdx.x + threadIdx.x;
+	//MAX_ITERATIONS 4
+	Ray ray(lightRay[index], scene, 4);
+	colGrid[index] = ray.raytrace();
 }
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
@@ -117,31 +128,69 @@ void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene, int x, int y, int 
 	vector_t locDir = scene->getCamera().getLocDir();
 	float ZOOM_FACTOR = scene->getCamera().getGridSize();
 
+	vector_t* thisLocDir = (vector_t*)malloc(squareSize*squareSize*sizeof(vector_t));
+	colour_t* col = (colour_t*)malloc(squareSize*squareSize*sizeof(colour_t));
+
 	for(int i=x*squareSize;i<(x+1)*squareSize;i++){
 		for(int j=y*squareSize;j<(y+1)*squareSize;j++){
+			int index = (j-y*squareSize)*squareSize+(i-x*squareSize);
+			//TODO: GENERALISE THIS FORMULA
+			//CURRENTLY: ONLY APPLIES TO CAMERA POINTING ALONG Y DIRECTION
+			thisLocDir[index] = vector_t();
+			thisLocDir[index].x0 = locDir.x0;
+			thisLocDir[index].y0 = locDir.y0;
+			thisLocDir[index].z0 = locDir.z0;
+
+			thisLocDir[index].xt = locDir.xt + (float)(i-SCREEN_WIDTH/2)*ZOOM_FACTOR;
+			thisLocDir[index].yt = locDir.yt;
+			thisLocDir[index].zt = locDir.zt + (float)(SCREEN_HEIGHT/2-j)*ZOOM_FACTOR;
+		}
+	}
+
+
+	//TODO:modify code to exploit dim3 struct of kernel call instead of using a linear array
+	//CALL PARALLEL CUDA ALGORITHM HERE
+	vector_t* d_lightRay;
+	Scene* d_scene;
+	colour_t* d_colourGrid;
+
+	cudaMalloc((void**) &d_lightRay, sizeof(vector_t)*squareSize*squareSize);
+	cudaMalloc((void**) &d_scene, sizeof(Scene));
+	cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*squareSize*squareSize);
+
+	cudaMemcpy(d_lightRay, thisLocDir, sizeof(vector_t)*squareSize*squareSize, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_scene, scene, sizeof(Scene), cudaMemcpyHostToDevice);
+
+	//calculateIntensityFromIntersections(thisLocDir, scene, col, squareSize*squareSize);
+	//CURRENTLY SPECIFIC TO 80 BLOCKS CHANGE THIS LOL
+	//cudaShootRays<<<5*5,16*16>>>(d_lightRay, d_scene, d_colourGrid);
+	cudaShootRays<<<1,1>>>(d_lightRay, d_scene, d_colourGrid);
+
+	cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSize*squareSize, cudaMemcpyDeviceToHost);
+
+	cudaFree(d_lightRay);
+	cudaFree(d_scene);
+	cudaFree(d_colourGrid);
+	//END OF GPU CALLING CUDA CODE
+
+
+	for(int i=x*squareSize;i<(x+1)*squareSize;i++){
+		for(int j=y*squareSize;j<(y+1)*squareSize;j++){
+			int index = (j-y*squareSize)*squareSize+(i-x*squareSize);
 			r.x = i;
 			r.y = j;
 
-			//TODO: GENERALISE THIS FORMULA
-			//CURRENTLY: ONLY APPLIES TO CAMERA POINTING ALONG Y DIRECTION
-			vector_t thisLocDir;
-			thisLocDir.x0 = locDir.x0;
-			thisLocDir.y0 = locDir.y0;
-			thisLocDir.z0 = locDir.z0;
-
-			thisLocDir.xt = locDir.xt + (float)(i-SCREEN_WIDTH/2)*ZOOM_FACTOR;
-			thisLocDir.yt = locDir.yt;
-			thisLocDir.zt = locDir.zt + (float)(SCREEN_HEIGHT/2-j)*ZOOM_FACTOR;
-
-			colour_t col = calculateIntensityFromIntersections(thisLocDir, scene);
-			
-			if(col.r<=255 && col.g<=255 && col.b<=255){
-				SDL_SetRenderDrawColor(renderer, (int)col.r, (int)col.g, (int)col.b, 255);
+			if(col[index].r<=255 && col[index].g<=255 && col[index].b<=255){
+				SDL_SetRenderDrawColor(renderer, (int)col[index].r, (int)col[index].g, (int)col[index].b, 255);
 			}else{
+				//draw bright flourescent pink for regions out of colour range nice one zl
 				SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
 			}
 			
 			SDL_RenderFillRect(renderer, &r);
 		}
 	}
+
+	free(thisLocDir);
+	free(col);
 }

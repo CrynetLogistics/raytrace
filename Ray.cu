@@ -21,7 +21,7 @@ NOTE: Even if DIRECT is given to a ray, it can still encounter other objects
 that might obstruct its path in future - in this case, it will be given a 
 BACKSCATTER when that occurs
 */
-Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
+__host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
 {
 	ray = initial;
 	this->scene = scene;
@@ -37,20 +37,20 @@ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
 	currentMeshIndex = -1;
 }
 
-colour_t Ray::raytrace(void){
+__host__ __device__ colour_t Ray::raytrace(void){
 	while((rayType!=CLIPPING && rayNumber-1<MAX_BOUNCES) || rayType==TRANSMISSION){
 		nextRayBounce();
 	}
-	//add specularity highlights if appropiate
-	if(specularityHighlight>0.99){
-		pathColour.r *= 2-(1-specularityHighlight)*100;
-		pathColour.g *= 2-(1-specularityHighlight)*100;
-		pathColour.b *= 2-(1-specularityHighlight)*100;
-	}
+	////add specularity highlights if appropiate
+	//if(specularityHighlight>0.99){
+	//	pathColour.r *= 2-(1-specularityHighlight)*100;
+	//	pathColour.g *= 2-(1-specularityHighlight)*100;
+	//	pathColour.b *= 2-(1-specularityHighlight)*100;
+	//}
 	return pathColour;
 }
 
-void Ray::nextRayBounce(void){
+__host__ __device__ void Ray::nextRayBounce(void){
 	rayNumber++;
 	float tMin = CLIPPING_DISTANCE;
 	int iMin = 0;
@@ -183,12 +183,14 @@ void Ray::nextRayBounce(void){
 	{
 		ray = directRay;
 
-		//Recursively call raytracer for reflective surfaces
-		Ray secondaryNormalRay(normalRay, scene, MAX_BOUNCES-1);
-		colour_t secondaryColour = secondaryNormalRay.raytrace();
-		pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity;
-		pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity;
-		pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity;
+		//REINSTATE RECURSION WHEN CONVENIENT
+		////Recursively call raytracer for reflective surfaces
+		//Ray secondaryNormalRay(normalRay, scene, MAX_BOUNCES-1);
+		//colour_t secondaryColour = secondaryNormalRay.raytrace();
+		//pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity;
+		//pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity;
+		//pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity;
+
 
 		//SPECULARITY
 		specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
@@ -198,12 +200,14 @@ void Ray::nextRayBounce(void){
 	{
 		ray = transmissionRay;
 
-		//Recursively call raytracer for reflective surfaces
-		Ray secondaryNormalRay(normalRay, scene, MAX_BOUNCES-1);
-		colour_t secondaryColour = secondaryNormalRay.raytrace();
-		pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity/3;
-		pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity/3;
-		pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity/3;
+		//REINSTATE RECURSION WHEN CONVENIENT
+		////Recursively call raytracer for reflective surfaces
+		//Ray secondaryNormalRay(normalRay, scene, MAX_BOUNCES-1);
+		//colour_t secondaryColour = secondaryNormalRay.raytrace();
+		//pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity/3;
+		//pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity/3;
+		//pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity/3;
+
 
 		//SPECULARITY
 		float specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
@@ -217,6 +221,6 @@ void Ray::nextRayBounce(void){
 	currentMeshIndex = iMin;
 }
 
-Ray::~Ray(void)
+__host__ __device__ Ray::~Ray(void)
 {
 }
