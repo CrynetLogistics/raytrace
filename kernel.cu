@@ -14,11 +14,11 @@
 #undef main
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define RENDER_SQUARE_SIZE 80
+#define RENDER_SQUARE_SIZE 10
 #define DISPLAY_TIME 30000
 #define MAX_ITERATIONS 4
 
-void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene, int x, int y, int squareSize);
+void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize);
 
 int main()
 {
@@ -35,6 +35,35 @@ int main()
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
+
+	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
+		for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
+			//CALL OUR DRAW LOOP FUNCTION
+			drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE);
+			SDL_RenderPresent(renderer);
+		}
+	}
+
+
+
+	printf("done");
+
+	SDL_Delay(DISPLAY_TIME);
+	//Destroy window
+    SDL_DestroyWindow(window);
+    //Quit SDL subsystems
+    SDL_Quit();
+    return 0;
+}
+
+//void calculateIntensityFromIntersections(vector_t* lightRay, Scene *scene, colour_t* colGrid, int gridSize){
+//	for(int i=0; i<gridSize; i++){
+//		Ray ray(lightRay[i], scene, MAX_ITERATIONS);
+//		colGrid[i] = ray.raytrace();
+//	}
+//}
+
+__global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 
 
 	colour_t dark_red;
@@ -74,7 +103,7 @@ int main()
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
 
-	Scene scene;
+	Scene scene;// = (Scene*)malloc(sizeof(Scene));
 	scene.addLight(-1,8,6,10);
 	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
@@ -87,46 +116,26 @@ int main()
 	scene.addSphere(-9,8,3,3,bright_green,SHINY);
 
 
-	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
-		for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
-			//CALL OUR DRAW LOOP FUNCTION
-			drawPixelRaytracer(renderer, &scene, i, j, RENDER_SQUARE_SIZE);
-			SDL_RenderPresent(renderer);
-		}
-	}
 
-	printf("done");
-
-	SDL_Delay(DISPLAY_TIME);
-	//Destroy window
-    SDL_DestroyWindow(window);
-    //Quit SDL subsystems
-    SDL_Quit();
-    return 0;
-}
-
-//void calculateIntensityFromIntersections(vector_t* lightRay, Scene *scene, colour_t* colGrid, int gridSize){
-//	for(int i=0; i<gridSize; i++){
-//		Ray ray(lightRay[i], scene, MAX_ITERATIONS);
-//		colGrid[i] = ray.raytrace();
-//	}
-//}
-
-__global__ void cudaShootRays(vector_t* lightRay, Scene* scene, colour_t* colGrid){
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	//MAX_ITERATIONS 4
-	Ray ray(lightRay[index], scene, 4);
+	Ray ray(lightRay[index], &scene, 2);
 	colGrid[index] = ray.raytrace();
+	if(index>=11310){
+		//printf("%i\n",index);
+	}
 }
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
-void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene, int x, int y, int squareSize){
+void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 	SDL_Rect r;
 	r.h = 1;
 	r.w = 1;
 
-	vector_t locDir = scene->getCamera().getLocDir();
-	float ZOOM_FACTOR = scene->getCamera().getGridSize();
+	//vector_t locDir = scene->getCamera().getLocDir();
+	vector_t locDir(0,0,0,0,3,0);
+	//float ZOOM_FACTOR = scene->getCamera().getGridSize();
+	float ZOOM_FACTOR = 0.01;
 
 	vector_t* thisLocDir = (vector_t*)malloc(squareSize*squareSize*sizeof(vector_t));
 	colour_t* col = (colour_t*)malloc(squareSize*squareSize*sizeof(colour_t));
@@ -148,28 +157,26 @@ void drawPixelRaytracer(SDL_Renderer *renderer, Scene *scene, int x, int y, int 
 	}
 
 
+
 	//TODO:modify code to exploit dim3 struct of kernel call instead of using a linear array
 	//CALL PARALLEL CUDA ALGORITHM HERE
 	vector_t* d_lightRay;
-	Scene* d_scene;
 	colour_t* d_colourGrid;
 
 	cudaMalloc((void**) &d_lightRay, sizeof(vector_t)*squareSize*squareSize);
-	cudaMalloc((void**) &d_scene, sizeof(Scene));
 	cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*squareSize*squareSize);
 
 	cudaMemcpy(d_lightRay, thisLocDir, sizeof(vector_t)*squareSize*squareSize, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_scene, scene, sizeof(Scene), cudaMemcpyHostToDevice);
 
 	//calculateIntensityFromIntersections(thisLocDir, scene, col, squareSize*squareSize);
 	//CURRENTLY SPECIFIC TO 80 BLOCKS CHANGE THIS LOL
-	//cudaShootRays<<<5*5,16*16>>>(d_lightRay, d_scene, d_colourGrid);
-	cudaShootRays<<<1,1>>>(d_lightRay, d_scene, d_colourGrid);
+	//cudaShootRays<<<5*5,16*16>>>(d_lightRay, d_colourGrid);
+	cudaShootRays<<<1,100>>>(d_lightRay, d_colourGrid);
 
 	cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSize*squareSize, cudaMemcpyDeviceToHost);
 
+
 	cudaFree(d_lightRay);
-	cudaFree(d_scene);
 	cudaFree(d_colourGrid);
 	//END OF GPU CALLING CUDA CODE
 

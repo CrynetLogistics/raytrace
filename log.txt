@@ -19,3 +19,4 @@
 37 - specularity fix
 39 - added Materials class
 42 - separated files to folders
+CrynetLogistics-CUDA upload - 46 - CUDA mostly working
