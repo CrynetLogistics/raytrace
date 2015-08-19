@@ -13,8 +13,9 @@ private:
 	Light light;
 	Mesh **meshes;
 	int numOfMeshes;
+	int totalMeshes;
 public:
-	__device__ Scene(void);
+	__device__ Scene(int totalMeshes);
 	__host__ __device__ Camera getCamera(void);
 	__host__ __device__ Mesh* getMesh(int number);
 	__host__ __device__ Light getLight(void);

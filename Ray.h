@@ -9,25 +9,34 @@
 //A RAY IS SET TO INITIAL AFTER BEING TRANSMISSION IN GLASS
 enum rayType_t {INITIAL, DIRECT, BACKSCATTER, CLIPPING, TRANSMISSION};
 
+typedef struct secondaryRay{
+	float currentMeshReflectivitySecondary;
+	vector_t normalRaySecondary;
+	int MAX_BOUNCESSecondary;
+	float totalDistanceSecondary;
+} secondaryRay_t;
+
 class Ray
 {
 private:
 	vector_t ray;
 	colour_t pathColour;
+	colour_t totalColour;
 	Scene *scene;
 	//rayNumber = number of ray segments in scene from this ray
 	int rayNumber;
 	rayType_t rayType;
 	float totalDistance;
 	int MAX_BOUNCES;
-	float currentMeshReflectivity;
 	float specularityHighlight;
-	int currentMeshIndex;
+
+	secondaryRay_t* secondary;
+	int secondaryDepth;
 
 	__host__ __device__ void nextRayBounce(void);
 public:
 	__host__ __device__ Ray(vector_t initial, Scene *scene, int MAX_BOUNCES);
-	__host__ __device__ colour_t raytrace(void);
+	__device__ colour_t raytrace(void);
 	__host__ __device__ ~Ray(void);
 };
 

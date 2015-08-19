@@ -93,7 +93,8 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 	v7.x = -30;v7.y = 0;v7.z = 30;
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
-	Scene scene;
+	//6 Meshes; Meshes = {Spheres, Planes}
+	Scene scene(6);
 	scene.addLight(-1,8,6,10);
 	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);

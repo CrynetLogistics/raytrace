@@ -1,13 +1,12 @@
 #include "Scene.h"
 
 //default lamp
-__device__ Scene::Scene(void)
+__device__ Scene::Scene(int totalMeshes)
 	:light(0, 0, 10, 10)
 {
+	this->totalMeshes = totalMeshes;
 	numOfMeshes = 0;
-	meshes = (Mesh**)malloc(9*sizeof(Mesh*));
-	//allocate 10 meshes and removing realloc later
-	//cudaMalloc((void**) &meshes, 10*sizeof(Mesh*));
+	meshes = (Mesh**)malloc(numOfMeshes*sizeof(Mesh*));
 }
 
 __host__ __device__ Mesh* Scene::getMesh(int number){
@@ -24,9 +23,7 @@ __host__ __device__ Camera Scene::getCamera(void){
 }
 
 __device__ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, Material material){
-
 	numOfMeshes++;
-	//meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
 
 	Sphere *t = new Sphere(centreX, centreY, centreZ, radius, col, material);
 
@@ -36,7 +33,6 @@ __device__ void Scene::addSphere(float centreX, float centreY, float centreZ, fl
 
 __device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material){
 	numOfMeshes++;
-	//meshes = (Mesh**)realloc(meshes, numOfMeshes*sizeof(Mesh*));
 
 	Plane *p = new Plane(v1, v2, v3, v4, colour, material);
 

@@ -2,13 +2,15 @@
 
 #define BRIGHTNESS 4
 #define CLIPPING_DISTANCE 999
-#define EPSILON 0.001
+#define EPSILON 0.001f
 //REFLECTIVITY, SHADOW_DIM_FACTOR GOES FROM 0 TO 1
-#define REFLECTIVITY 0.5
-#define SHADOW_DIM_FACTOR 0.9
-#define REFRACTION_BRIGHTNESS 0.5 //[0,1] higher = more prominence of reflections and refractions
-#define GLASS_CLARITY .6 //[0,1] higher = less of original colour
-#define IOR 1.5
+#define REFLECTIVITY 0.8f
+#define SHADOW_DIM_FACTOR 0.9f
+#define REFRACTION_BRIGHTNESS 0.5f //[0,1] higher = more prominence of reflections and refractions
+#define GLASS_CLARITY 0.6f //[0,1] higher = less of original colour
+#define IOR 1.5f
+#define REFLECTIONAL_LIGHTING 1
+#define MAXIMUM_DEPTH 10
 
 /*
 LIFE CYCLE OF A RAY:
@@ -29,25 +31,55 @@ __host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
 	pathColour.r = 0;
 	pathColour.g = 0;
 	pathColour.b = 0;
+	totalColour.r = 0;
+	totalColour.g = 0;
+	totalColour.b = 0;
 	rayNumber = 0;
 	rayType = INITIAL;
 	totalDistance = 0;
-	currentMeshReflectivity = 1;
 	specularityHighlight = 0;
-	currentMeshIndex = -1;
+	secondary = (secondaryRay_t*)malloc(MAXIMUM_DEPTH*sizeof(secondaryRay_t));
+	secondaryDepth = 0;
 }
 
-__host__ __device__ colour_t Ray::raytrace(void){
-	while((rayType!=CLIPPING && rayNumber-1<MAX_BOUNCES) || rayType==TRANSMISSION){
-		nextRayBounce();
+__device__ colour_t Ray::raytrace(void){
+	int rayLevel = 0;
+	while(rayLevel <= secondaryDepth){
+		if(rayLevel != 0){
+			ray = secondary[rayLevel-1].normalRaySecondary;
+			pathColour.r = 0;
+			pathColour.g = 0;
+			pathColour.b = 0;
+			rayNumber = 0;
+			rayType = INITIAL;
+			totalDistance = secondary[rayLevel-1].totalDistanceSecondary;
+			MAX_BOUNCES = secondary[rayLevel-1].MAX_BOUNCESSecondary;
+		}
+
+		while(rayType!=CLIPPING && rayNumber-1<MAX_BOUNCES){
+			nextRayBounce();
+		}
+
+		//add specularity highlights if appropiate
+		if(specularityHighlight>0.99){
+			pathColour.r *= 2-(1-specularityHighlight)*100;
+			pathColour.g *= 2-(1-specularityHighlight)*100;
+			pathColour.b *= 2-(1-specularityHighlight)*100;
+			specularityHighlight = 0;
+		}
+
+		if(rayLevel == 0){
+			totalColour.r += pathColour.r;
+			totalColour.g += pathColour.g;
+			totalColour.b += pathColour.b;
+		}else{
+			totalColour.r += pathColour.r*REFLECTIVITY*secondary[rayLevel-1].currentMeshReflectivitySecondary;
+			totalColour.g += pathColour.g*REFLECTIVITY*secondary[rayLevel-1].currentMeshReflectivitySecondary;
+			totalColour.b += pathColour.b*REFLECTIVITY*secondary[rayLevel-1].currentMeshReflectivitySecondary;
+		}
+		rayLevel++;
 	}
-	////add specularity highlights if appropiate
-	//if(specularityHighlight>0.99){
-	//	pathColour.r *= 2-(1-specularityHighlight)*100;
-	//	pathColour.g *= 2-(1-specularityHighlight)*100;
-	//	pathColour.b *= 2-(1-specularityHighlight)*100;
-	//}
-	return pathColour;
+	return totalColour;
 }
 
 __host__ __device__ void Ray::nextRayBounce(void){
@@ -78,7 +110,7 @@ __host__ __device__ void Ray::nextRayBounce(void){
 	float distance = ray.calculateDistance(tMin);
 	totalDistance += distance;
 	
-	currentMeshReflectivity = scene->getMesh(iMin)->getMaterial().getReflectivity();
+	float currentMeshReflectivity = scene->getMesh(iMin)->getMaterial().getReflectivity();
 	bool isTransmission = scene->getMesh(iMin)->getMaterial().getTransmission();
 	float isShadowed = scene->getMesh(iMin)->getShadowedStatus(ray, tMin, scene->getLight());
 
@@ -182,15 +214,14 @@ __host__ __device__ void Ray::nextRayBounce(void){
 	case DIRECT:
 	{
 		ray = directRay;
-
-		//REINSTATE RECURSION WHEN CONVENIENT
-		////Recursively call raytracer for reflective surfaces
-		//Ray secondaryNormalRay(normalRay, scene, MAX_BOUNCES-1);
-		//colour_t secondaryColour = secondaryNormalRay.raytrace();
-		//pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity;
-		//pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity;
-		//pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity;
-
+		
+		if(REFLECTIONAL_LIGHTING && secondaryDepth < MAXIMUM_DEPTH){
+			secondary[secondaryDepth].currentMeshReflectivitySecondary = currentMeshReflectivity;
+			secondary[secondaryDepth].MAX_BOUNCESSecondary = MAX_BOUNCES-1;
+			secondary[secondaryDepth].normalRaySecondary = normalRay;
+			secondary[secondaryDepth].totalDistanceSecondary = totalDistance;
+			secondaryDepth++;
+		}
 
 		//SPECULARITY
 		specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
@@ -200,14 +231,13 @@ __host__ __device__ void Ray::nextRayBounce(void){
 	{
 		ray = transmissionRay;
 
-		//REINSTATE RECURSION WHEN CONVENIENT
-		////Recursively call raytracer for reflective surfaces
-		//Ray secondaryNormalRay(normalRay, scene, MAX_BOUNCES-1);
-		//colour_t secondaryColour = secondaryNormalRay.raytrace();
-		//pathColour.r += secondaryColour.r*REFLECTIVITY*currentMeshReflectivity/3;
-		//pathColour.g += secondaryColour.g*REFLECTIVITY*currentMeshReflectivity/3;
-		//pathColour.b += secondaryColour.b*REFLECTIVITY*currentMeshReflectivity/3;
-
+		if(REFLECTIONAL_LIGHTING && secondaryDepth < MAXIMUM_DEPTH){
+			secondary[secondaryDepth].currentMeshReflectivitySecondary = currentMeshReflectivity;
+			secondary[secondaryDepth].MAX_BOUNCESSecondary = MAX_BOUNCES-1;
+			secondary[secondaryDepth].normalRaySecondary = normalRay;
+			secondary[secondaryDepth].totalDistanceSecondary = totalDistance;
+			secondaryDepth++;
+		}
 
 		//SPECULARITY
 		float specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
@@ -217,10 +247,9 @@ __host__ __device__ void Ray::nextRayBounce(void){
 		printf("ERROR: RAYS HAVE GONE HAYWIRE");
 		break;
 	}
-
-	currentMeshIndex = iMin;
 }
 
 __host__ __device__ Ray::~Ray(void)
 {
+	free(secondary);
 }
