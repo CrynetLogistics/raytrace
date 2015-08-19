@@ -10,7 +10,7 @@
 #define GLASS_CLARITY 0.6f //[0,1] higher = less of original colour
 #define IOR 1.5f
 #define REFLECTIONAL_LIGHTING 1
-#define MAXIMUM_DEPTH 10
+#define MAXIMUM_DEPTH 8
 
 /*
 LIFE CYCLE OF A RAY:
@@ -23,7 +23,7 @@ NOTE: Even if DIRECT is given to a ray, it can still encounter other objects
 that might obstruct its path in future - in this case, it will be given a 
 BACKSCATTER when that occurs
 */
-__host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
+__device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
 {
 	ray = initial;
 	this->scene = scene;
@@ -52,7 +52,6 @@ __device__ colour_t Ray::raytrace(void){
 			pathColour.b = 0;
 			rayNumber = 0;
 			rayType = INITIAL;
-			totalDistance = secondary[rayLevel-1].totalDistanceSecondary;
 			MAX_BOUNCES = secondary[rayLevel-1].MAX_BOUNCESSecondary;
 		}
 
@@ -82,7 +81,7 @@ __device__ colour_t Ray::raytrace(void){
 	return totalColour;
 }
 
-__host__ __device__ void Ray::nextRayBounce(void){
+__device__ void Ray::nextRayBounce(void){
 	rayNumber++;
 	float tMin = CLIPPING_DISTANCE;
 	int iMin = 0;
@@ -219,7 +218,6 @@ __host__ __device__ void Ray::nextRayBounce(void){
 			secondary[secondaryDepth].currentMeshReflectivitySecondary = currentMeshReflectivity;
 			secondary[secondaryDepth].MAX_BOUNCESSecondary = MAX_BOUNCES-1;
 			secondary[secondaryDepth].normalRaySecondary = normalRay;
-			secondary[secondaryDepth].totalDistanceSecondary = totalDistance;
 			secondaryDepth++;
 		}
 
@@ -235,7 +233,6 @@ __host__ __device__ void Ray::nextRayBounce(void){
 			secondary[secondaryDepth].currentMeshReflectivitySecondary = currentMeshReflectivity;
 			secondary[secondaryDepth].MAX_BOUNCESSecondary = MAX_BOUNCES-1;
 			secondary[secondaryDepth].normalRaySecondary = normalRay;
-			secondary[secondaryDepth].totalDistanceSecondary = totalDistance;
 			secondaryDepth++;
 		}
 
@@ -249,7 +246,7 @@ __host__ __device__ void Ray::nextRayBounce(void){
 	}
 }
 
-__host__ __device__ Ray::~Ray(void)
+__device__ Ray::~Ray(void)
 {
 	free(secondary);
 }

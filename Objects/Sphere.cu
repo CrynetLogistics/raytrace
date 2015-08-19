@@ -1,6 +1,6 @@
 #include "Sphere.h"
 
-__host__ __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material)
+__device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material)
 	:material(material)
 {
 	centre.x = centreX;
@@ -13,15 +13,15 @@ __host__ __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, 
 	this->material = material;
 }
 
-__host__ __device__ float Sphere::getRadius(void){
+__device__ float Sphere::getRadius(void){
 	return radius;
 }
 
-__host__ __device__ vertex_t Sphere::getCentre(void){
+__device__ vertex_t Sphere::getCentre(void){
 	return centre;
 }
 
-__host__ __device__ float Sphere::getIntersectionParameter(vector_t lightRay){
+__device__ float Sphere::getIntersectionParameter(vector_t lightRay){
 	float acx = lightRay.x0-centre.x;
 	float acy = lightRay.y0-centre.y;
 	float acz = lightRay.z0-centre.z;
@@ -42,7 +42,7 @@ __host__ __device__ float Sphere::getIntersectionParameter(vector_t lightRay){
 
 //returns a negative for false and positive for true
 //magnitude of the number from 0 to 1 to indicate distance from extremum
-__host__ __device__ float Sphere::getShadowedStatus(vector_t lightRay, float t, Light light){
+__device__ float Sphere::getShadowedStatus(vector_t lightRay, float t, Light light){
 	vertex_t pos = lightRay.getPosAtParameter(t);
 	vector_t normalVector(pos.x, pos.y, pos.z, pos.x-centre.x, pos.y-centre.y, pos.z-centre.z);
 	vector_t lightVector(pos.x, pos.y, pos.z, light.getPos().x-pos.x, light.getPos().y-pos.y, light.getPos().z-pos.z);
@@ -57,7 +57,7 @@ __host__ __device__ float Sphere::getShadowedStatus(vector_t lightRay, float t, 
 }
 
 //TODO:CURRENTLY UNUSED FEATURE - NORMAL RETURNED IN THE SAME DIRECTION AS REFLECTED RAY
-__host__ __device__ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
+__device__ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
 	vector_t normalVector(pos.x, pos.y, pos.z, pos.x-centre.x, pos.y-centre.y, pos.z-centre.z);
 	//if(normalVector.directionDotProduct(incoming)>0){
 	//	normalVector.xt = -1*normalVector.xt;
@@ -67,14 +67,14 @@ __host__ __device__ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
 	return normalVector;
 }
 
-__host__ __device__ colour_t Sphere::getColour(void){
+__device__ colour_t Sphere::getColour(void){
 	return colour;
 }
 
-__host__ __device__ Material Sphere::getMaterial(void){
+__device__ Material Sphere::getMaterial(void){
 	return material;
 }
 
-__host__ __device__ Sphere::~Sphere(void)
+__device__ Sphere::~Sphere(void)
 {
 }

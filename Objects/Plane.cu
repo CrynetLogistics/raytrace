@@ -3,7 +3,7 @@
 //TODO:HANDLE PARALLELOGRAMS AND NO PLANAR SURFACES
 //TODO:INFER VERTEX4 FROM V1,2,3 AND SQUARE PROPERTY
 
-__host__ __device__ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material)
+__device__ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material)
 	:material(material)
 {
 	this->v1 = v1;
@@ -24,7 +24,7 @@ __host__ __device__ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t
 	this->material = material;
 }
 
-__host__ __device__ float Plane::getIntersectionParameter(vector_t lightRay){
+__device__ float Plane::getIntersectionParameter(vector_t lightRay){
 	float t;
 	vector_t lightSource(0,0,0,lightRay.x0,lightRay.y0,lightRay.z0);
 	vector_t lightDirection(0,0,0,lightRay.xt,lightRay.yt,lightRay.zt);
@@ -50,7 +50,7 @@ __host__ __device__ float Plane::getIntersectionParameter(vector_t lightRay){
 }
 
 //for self shadowing only (isShadowed)
-__host__ __device__ float Plane::getShadowedStatus(vector_t lightRay, float t, Light light){
+__device__ float Plane::getShadowedStatus(vector_t lightRay, float t, Light light){
 	vertex_t pos = lightRay.getPosAtParameter(t);
 	vector_t lightVector(pos.x, pos.y, pos.z, light.getPos().x-pos.x, light.getPos().y-pos.y, light.getPos().z-pos.z);
 	vector_t cameraVector(pos.x, pos.y, pos.z, -1*lightRay.xt, -1*lightRay.yt, -1*lightRay.zt);
@@ -63,7 +63,7 @@ __host__ __device__ float Plane::getShadowedStatus(vector_t lightRay, float t, L
 }
 
 //TODO:CURRENTLY UNUSED FEATURE - NORMAL RETURNED IN THE SAME DIRECTION AS REFLECTED RAY
-__host__ __device__ vector_t Plane::getNormal(vertex_t pos, vector_t incoming){
+__device__ vector_t Plane::getNormal(vertex_t pos, vector_t incoming){
 	//if(normal.directionDotProduct(incoming)>0){
 	//	normal.xt = -1*normal.xt;
 	//	normal.yt = -1*normal.yt;
@@ -75,14 +75,14 @@ __host__ __device__ vector_t Plane::getNormal(vertex_t pos, vector_t incoming){
 	return normal;
 }
 
-__host__ __device__ colour_t Plane::getColour(void){
+__device__ colour_t Plane::getColour(void){
 	return colour;
 }
 
-__host__ __device__ Material Plane::getMaterial(void){
+__device__ Material Plane::getMaterial(void){
 	return material;
 }
 
-__host__ __device__ Plane::~Plane(void)
+__device__ Plane::~Plane(void)
 {
 }
