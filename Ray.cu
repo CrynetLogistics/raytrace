@@ -6,7 +6,7 @@
 //REFLECTIVITY, SHADOW_DIM_FACTOR GOES FROM 0 TO 1
 #define REFLECTIVITY 0.8f
 #define SHADOW_DIM_FACTOR 0.9f
-#define REFRACTION_BRIGHTNESS 0.5f //[0,1] higher = more prominence of reflections and refractions
+#define REFRACTION_BRIGHTNESS 0.8f //[0,1] higher = more prominence of reflections and refractions
 #define GLASS_CLARITY 0.6f //[0,1] higher = less of original colour
 #define IOR 1.5f
 #define REFLECTIONAL_LIGHTING 1

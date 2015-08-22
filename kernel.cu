@@ -14,9 +14,11 @@
 #undef main
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define RENDER_SQUARE_SIZE 80
+#define RENDER_SQUARE_SIZE 40
 #define DISPLAY_TIME 30000
 #define MAX_ITERATIONS 4
+#define THREADS_PER_BLOCK 64
+#define NUM_OF_BLOCKS 25
 
 void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize);
 
@@ -94,18 +96,20 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
 	//6 Meshes; Meshes = {Spheres, Planes}
-	Scene scene(6);
+	Scene scene(9);
 	scene.addLight(-1,8,6,10);
 	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	//scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	scene.addTri(v3,v4,v5,bright_green,SHINY);
-	//scene.addPlane(v7,v8,v5,v6,bright_green,1,false);
-	//scene.addPlane(v1,v3,v5,v7,bright_green,1,false);
-	//scene.addPlane(v2,v4,v6,v8,bright_green,1,false);
+	//scene.addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
+	//scene.addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
+	//scene.addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
 	scene.addSphere(2,10,5,2.5,dark_red,SHINY);
-	scene.addSphere(6,9,3,3,cold_blue,SHINY);
+	scene.addSphere(6,9,3,3,cold_blue,DIFFUSE);
+	scene.addSphere(6,7,-1,2,cold_blue,SHINY);
 	scene.addSphere(-2,6,0,2,soft_red,WATER);
-	scene.addSphere(-9,8,3,3,bright_green,SHINY);
+	scene.addSphere(-6,8,-2,2,soft_red,GLASS);
+	scene.addSphere(-9,8,3,3,bright_green,DIFFUSE);
 
 
 
@@ -158,7 +162,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 
 	//calculateIntensityFromIntersections(thisLocDir, scene, col, squareSize*squareSize);
 	//CURRENTLY SPECIFIC TO 80 BLOCKS CHANGE THIS LOL
-	cudaShootRays<<<25,256>>>(d_lightRay, d_colourGrid);
+	cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_lightRay, d_colourGrid);
 
 	cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSize*squareSize, cudaMemcpyDeviceToHost);
 

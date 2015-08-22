@@ -28,7 +28,7 @@ the recursion will be arbitarily deep, will find an iterative alternative
 55 - implemented an array to hold all the secondary rays which will be individually processed after the main ray
 56 - fully working CUDA raytracer complete with all features
 57 - added triangle support
-
+58 - final cleaning up
 
 
 
