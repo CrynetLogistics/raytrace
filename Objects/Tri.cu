@@ -1,12 +1,11 @@
-#include "Plane.h"
+#include "Tri.h"
 
-__device__ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material)
+__device__ Tri::Tri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, Material material)
 	:material(material)
 {
 	this->v1 = v1;
 	this->v2 = v2;
 	this->v3 = v3;
-	this->v4 = v4;
 
 	this->colour = colour;
 	vector_t side1(v1,v2);
@@ -21,25 +20,28 @@ __device__ Plane::Plane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colo
 	this->material = material;
 }
 
-__device__ float Plane::getIntersectionParameter(vector_t lightRay){
+__device__ float Tri::getIntersectionParameter(vector_t lightRay){
 	float t;
 	vector_t lightSource(0,0,0,lightRay.x0,lightRay.y0,lightRay.z0);
 	vector_t lightDirection(0,0,0,lightRay.xt,lightRay.yt,lightRay.zt);
 	t = (d - normal.directionDotProduct(lightSource))/normal.directionDotProduct(lightDirection);
 
 	vector_t side1(v1,v2);
-	vector_t side2(v1,v3);
-	vector_t side3(v4,v2);
-	vector_t side4(v4,v3);
+	vector_t side2(v2,v3);
+	vector_t side3(v3,v1);
+
+	vector_t normal1 = normal.directionCrossProduct(side1);
+	vector_t normal2 = normal.directionCrossProduct(side2);
+	vector_t normal3 = normal.directionCrossProduct(side3);
 
 	vertex_t planePoint = lightRay.getPosAtParameter(t);
 	vector_t pointFromV1(v1, planePoint);
-	vector_t pointFromV4(v4, planePoint);
+	vector_t pointFromV2(v2, planePoint);
+	vector_t pointFromV3(v3, planePoint);
 
-	if(side1.directionDotProduct(pointFromV1) > 0 &&
-	   side2.directionDotProduct(pointFromV1) > 0 &&
-	   side3.directionDotProduct(pointFromV4) > 0 &&
-	   side4.directionDotProduct(pointFromV4) > 0){
+	if(normal1.directionDotProduct(pointFromV1) > 0 &&
+	   normal2.directionDotProduct(pointFromV2) > 0 &&
+	   normal3.directionDotProduct(pointFromV3) > 0){
 		return t;
 	}else{
 		return 0;
@@ -47,7 +49,7 @@ __device__ float Plane::getIntersectionParameter(vector_t lightRay){
 }
 
 //for self shadowing only (isShadowed)
-__device__ float Plane::getShadowedStatus(vector_t lightRay, float t, Light light){
+__device__ float Tri::getShadowedStatus(vector_t lightRay, float t, Light light){
 	vertex_t pos = lightRay.getPosAtParameter(t);
 	vector_t lightVector(pos.x, pos.y, pos.z, light.getPos().x-pos.x, light.getPos().y-pos.y, light.getPos().z-pos.z);
 	vector_t cameraVector(pos.x, pos.y, pos.z, -1*lightRay.xt, -1*lightRay.yt, -1*lightRay.zt);
@@ -59,27 +61,21 @@ __device__ float Plane::getShadowedStatus(vector_t lightRay, float t, Light ligh
 	}
 }
 
-//TODO:CURRENTLY UNUSED FEATURE - NORMAL RETURNED IN THE SAME DIRECTION AS REFLECTED RAY
-__device__ vector_t Plane::getNormal(vertex_t pos, vector_t incoming){
-	//if(normal.directionDotProduct(incoming)>0){
-	//	normal.xt = -1*normal.xt;
-	//	normal.yt = -1*normal.yt;
-	//	normal.zt = -1*normal.zt;
-	//}
+__device__ vector_t Tri::getNormal(vertex_t pos, vector_t incoming){
 	normal.x0 = pos.x;
 	normal.y0 = pos.y;
 	normal.z0 = pos.z;
 	return normal;
 }
 
-__device__ colour_t Plane::getColour(void){
+__device__ colour_t Tri::getColour(void){
 	return colour;
 }
 
-__device__ Material Plane::getMaterial(void){
+__device__ Material Tri::getMaterial(void){
 	return material;
 }
 
-__device__ Plane::~Plane(void)
+__device__ Tri::~Tri(void)
 {
 }

@@ -27,4 +27,14 @@ CrynetLogistics-CUDA upload - 46 - CUDA mostly working
 the recursion will be arbitarily deep, will find an iterative alternative
 55 - implemented an array to hold all the secondary rays which will be individually processed after the main ray
 56 - fully working CUDA raytracer complete with all features
-//I will work on global illumination next
+57 - added triangle support
+
+
+
+
+
+Features:
+CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris
+
+Upcoming Features:
+Ambient Occlusion Pass, Object Input Parser

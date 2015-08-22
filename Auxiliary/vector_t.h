@@ -4,7 +4,7 @@
 class vector_t
 {
 public:
-	//REMEMBER TO MAKE THESE PRIVATE
+	//structure variables
 	float x0;
 	float y0;
 	float z0;

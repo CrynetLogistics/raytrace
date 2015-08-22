@@ -25,9 +25,9 @@ __host__ __device__ Camera Scene::getCamera(void){
 __device__ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, Material material){
 	numOfMeshes++;
 
-	Sphere *t = new Sphere(centreX, centreY, centreZ, radius, col, material);
+	Sphere *s = new Sphere(centreX, centreY, centreZ, radius, col, material);
 
-	Mesh *m = t;
+	Mesh *m = s;
 	meshes[numOfMeshes-1] = m;
 }
 
@@ -37,6 +37,15 @@ __device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t 
 	Plane *p = new Plane(v1, v2, v3, v4, colour, material);
 
 	Mesh *m = p;
+	meshes[numOfMeshes-1] = m;
+}
+
+__device__ void Scene::addTri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, Material material){
+	numOfMeshes++;
+
+	Tri *t = new Tri(v1, v2, v3, colour, material);
+
+	Mesh *m = t;
 	meshes[numOfMeshes-1] = m;
 }
 

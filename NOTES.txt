@@ -1,0 +1,3 @@
+when compiling:
+ - use CUDA C/C++ compiler for .cu files
+ - must use -rdc=true i.e. generate device relocatable code

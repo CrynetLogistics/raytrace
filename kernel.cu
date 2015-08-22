@@ -97,7 +97,8 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 	Scene scene(6);
 	scene.addLight(-1,8,6,10);
 	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
-	scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
+	//scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
+	scene.addTri(v3,v4,v5,bright_green,SHINY);
 	//scene.addPlane(v7,v8,v5,v6,bright_green,1,false);
 	//scene.addPlane(v1,v3,v5,v7,bright_green,1,false);
 	//scene.addPlane(v2,v4,v6,v8,bright_green,1,false);
@@ -122,7 +123,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 	//vector_t locDir = scene->getCamera().getLocDir();
 	vector_t locDir(0,0,0,0,3,0);
 	//float ZOOM_FACTOR = scene->getCamera().getGridSize();
-	float ZOOM_FACTOR = 0.01;
+	float ZOOM_FACTOR = 0.01f;
 
 	vector_t* thisLocDir = (vector_t*)malloc(squareSize*squareSize*sizeof(vector_t));
 	colour_t* col = (colour_t*)malloc(squareSize*squareSize*sizeof(colour_t));
