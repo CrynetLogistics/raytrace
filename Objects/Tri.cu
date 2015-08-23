@@ -1,8 +1,7 @@
 #include "Tri.h"
 
 __device__ Tri::Tri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, Material material)
-	:material(material)
-{
+	:material(material){
 	this->v1 = v1;
 	this->v2 = v2;
 	this->v3 = v3;
@@ -76,6 +75,5 @@ __device__ Material Tri::getMaterial(void){
 	return material;
 }
 
-__device__ Tri::~Tri(void)
-{
+__device__ Tri::~Tri(void){
 }

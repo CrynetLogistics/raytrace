@@ -23,8 +23,7 @@ NOTE: Even if DIRECT is given to a ray, it can still encounter other objects
 that might obstruct its path in future - in this case, it will be given a 
 BACKSCATTER when that occurs
 */
-__device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES)
-{
+__device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES){
 	ray = initial;
 	this->scene = scene;
 	this->MAX_BOUNCES = MAX_BOUNCES;
@@ -246,7 +245,6 @@ __device__ void Ray::nextRayBounce(void){
 	}
 }
 
-__device__ Ray::~Ray(void)
-{
+__device__ Ray::~Ray(void){
 	free(secondary);
 }

@@ -1,7 +1,6 @@
 #include "vector_t.h"
 
-__host__ __device__ vector_t::vector_t(void)
-{
+__host__ __device__ vector_t::vector_t(void){
 }
 
 __host__ __device__ vector_t::vector_t(vertex_t origin, vertex_t destination){
@@ -57,6 +56,5 @@ __host__ __device__ float vector_t::directionMagnitude(void){
 	return sqrt(xt*xt+yt*yt+zt*zt);
 }
 
-__host__ __device__ vector_t::~vector_t(void)
-{
+__host__ __device__ vector_t::~vector_t(void){
 }

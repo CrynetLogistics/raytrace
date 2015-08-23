@@ -14,10 +14,10 @@
 #undef main
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define RENDER_SQUARE_SIZE 40
+#define RENDER_SQUARE_SIZE 80
 #define DISPLAY_TIME 30000
 #define MAX_ITERATIONS 4
-#define THREADS_PER_BLOCK 64
+#define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 25
 
 void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize);

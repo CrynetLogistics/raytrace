@@ -2,8 +2,7 @@
 
 //default lamp
 __device__ Scene::Scene(int totalMeshes)
-	:light(0, 0, 10, 10)
-{
+	:light(0, 0, 10, 10){
 	this->totalMeshes = totalMeshes;
 	numOfMeshes = 0;
 	meshes = (Mesh**)malloc(numOfMeshes*sizeof(Mesh*));
@@ -61,8 +60,7 @@ __host__ __device__ Light Scene::getLight(void){
 	return light;
 }
 
-__device__ Scene::~Scene(void)
-{
+__device__ Scene::~Scene(void){
 	for(int i=0;i<numOfMeshes;i++){
 		free(meshes[i]);
 	}

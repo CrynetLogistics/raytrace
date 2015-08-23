@@ -1,8 +1,7 @@
 #include "Sphere.h"
 
 __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material)
-	:material(material)
-{
+	:material(material){
 	centre.x = centreX;
 	centre.y = centreY;
 	centre.z = centreZ;
@@ -75,6 +74,5 @@ __device__ Material Sphere::getMaterial(void){
 	return material;
 }
 
-__device__ Sphere::~Sphere(void)
-{
+__device__ Sphere::~Sphere(void){
 }
