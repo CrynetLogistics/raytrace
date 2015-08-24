@@ -120,9 +120,6 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
 void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
-	SDL_Rect r;
-	r.h = 1;
-	r.w = 1;
 
 	//vector_t locDir = scene->getCamera().getLocDir();
 	vector_t locDir(0,0,0,0,3,0);
@@ -175,8 +172,6 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 	for(int i=x*squareSize;i<(x+1)*squareSize;i++){
 		for(int j=y*squareSize;j<(y+1)*squareSize;j++){
 			int index = (j-y*squareSize)*squareSize+(i-x*squareSize);
-			r.x = i;
-			r.y = j;
 
 			if(col[index].r<=255 && col[index].g<=255 && col[index].b<=255){
 				SDL_SetRenderDrawColor(renderer, (int)col[index].r, (int)col[index].g, (int)col[index].b, 255);
@@ -184,8 +179,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 				//draw bright flourescent pink for regions out of colour range nice one zl
 				SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
 			}
-			
-			SDL_RenderFillRect(renderer, &r);
+			SDL_RenderDrawPoint(renderer, i, j);
 		}
 	}
 

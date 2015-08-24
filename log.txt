@@ -29,7 +29,7 @@ the recursion will be arbitarily deep, will find an iterative alternative
 56 - fully working CUDA raytracer complete with all features
 57 - added triangle support
 59 - final cleaning up
-
+60 - performance improvements
 
 
 
