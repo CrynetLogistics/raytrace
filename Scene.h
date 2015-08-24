@@ -1,9 +1,9 @@
 #pragma once
-#include "Objects/Camera.h"
-#include "Objects/Light.h"
-#include "Objects/Sphere.h"
-#include "Objects/Plane.h"
-#include "Objects/Tri.h"
+#include "Camera.h"
+#include "Light.h"
+#include "Sphere.h"
+#include "Plane.h"
+#include "Tri.h"
 #include "stdlib.h"
 #include "stdio.h"
 

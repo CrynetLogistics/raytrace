@@ -160,33 +160,54 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="Camera.cu">
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
     <CudaCompile Include="kernel.cu">
       <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GPUDebugInfo>
       <HostDebugInfo Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</HostDebugInfo>
       <GenerateLineInfo Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</GenerateLineInfo>
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
+    <CudaCompile Include="Sphere.cu">
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
+    <CudaCompile Include="Tri.cu">
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Auxiliary\Material.cu">
+    <CudaCompile Include="Material.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
     <CudaCompile Include="Auxiliary\vector_t.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
-    <CudaCompile Include="Objects\Camera.cu">
+    <CudaCompile Include="Light.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
-    <CudaCompile Include="Objects\Light.cu">
+    <CudaCompile Include="Material.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
-    <CudaCompile Include="Objects\Mesh.cu">
+    <CudaCompile Include="Mesh.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
-    <CudaCompile Include="Objects\Plane.cu">
+    <CudaCompile Include="Camera.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
-    <CudaCompile Include="Objects\Sphere.cu">
+    <CudaCompile Include="Light.cu">
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
+    <CudaCompile Include="Mesh.cu">
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
+    <CudaCompile Include="Plane.cu">
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
+    <CudaCompile Include="Sphere.cu">
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
+    <CudaCompile Include="Plane.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
     <CudaCompile Include="Ray.cu">
@@ -197,7 +218,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Auxiliary\Material.h">
+    <ClCompile Include="Material.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
     <ClCompile Include="Auxiliary\structures.h">
@@ -206,19 +227,19 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="Auxiliary\vector_t.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <ClCompile Include="Objects\Camera.h">
+    <ClCompile Include="Camera.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <ClCompile Include="Objects\Light.h">
+    <ClCompile Include="Light.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <ClCompile Include="Objects\Mesh.h">
+    <ClCompile Include="Mesh.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <ClCompile Include="Objects\Plane.h">
+    <ClCompile Include="Plane.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <ClCompile Include="Objects\Sphere.h">
+    <ClCompile Include="Sphere.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
     <ClCompile Include="Ray.h">
@@ -227,13 +248,19 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="Scene.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <CudaCompile Include="Objects\Tri.cu">
+    <CudaCompile Include="Tri.cu">
       <FileType>CppCode</FileType>
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Objects\Tri.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Plane.h" />
+    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Tri.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

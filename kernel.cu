@@ -5,9 +5,9 @@
 #include "Scene.h"
 #include "Auxiliary/structures.h"
 #include "Auxiliary/vector_t.h"
-#include "Objects/Plane.h"
+#include "Plane.h"
 #include "Ray.h"
-#include "Auxiliary/Material.h"
+#include "Material.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Auxiliary/structures.h"
+#include "Auxiliary/structures.h"
 class Light
 {
 private:

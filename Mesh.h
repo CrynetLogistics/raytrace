@@ -1,7 +1,7 @@
 #pragma once
 #include "Light.h"
-#include "../Auxiliary/vector_t.h"
-#include "../Auxiliary/Material.h"
+#include "Auxiliary/vector_t.h"
+#include "Material.h"
 
 class Mesh
 {
