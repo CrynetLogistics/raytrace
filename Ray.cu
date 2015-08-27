@@ -97,9 +97,9 @@ __device__ void Ray::nextRayBounce(void){
 
 	colour_t intersectedMeshColour;
 	if(tMin!=CLIPPING_DISTANCE){ //NOT a clipping ray
-		intersectedMeshColour.r = scene->getMesh(iMin)->getColour().r;
-		intersectedMeshColour.g = scene->getMesh(iMin)->getColour().g;
-		intersectedMeshColour.b = scene->getMesh(iMin)->getColour().b;
+		intersectedMeshColour.r = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin)).r;
+		intersectedMeshColour.g = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin)).g;
+		intersectedMeshColour.b = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin)).b;
 	}else{
 		rayType = CLIPPING;
 		return;

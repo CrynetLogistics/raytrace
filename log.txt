@@ -30,7 +30,9 @@ the recursion will be arbitarily deep, will find an iterative alternative
 57 - added triangle support
 59 - final cleaning up
 60 - performance improvements
-
+62 - experimental features for shared memory
+65 - introduced texture support for spheres
+67 - 2 mapping systems for textures
 
 
 Features:

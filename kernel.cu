@@ -1,6 +1,8 @@
 #include <iostream>
 #include "SDL.h"
+#include "SDL_image.h"
 #include "stdio.h"
+#include "stdint.h"
 #include "math.h"
 #include "Scene.h"
 #include "Auxiliary/structures.h"
@@ -19,46 +21,12 @@
 #define MAX_ITERATIONS 4
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 25
+#define TEXTURE_WIDTH 600
+#define TEXTURE_HEIGHT 300
 
-void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize);
+uint32_t getpixel(SDL_Surface *surface, int x, int y);
 
-int main()
-{
-    SDL_Window* window = NULL;
-	SDL_Init(SDL_INIT_EVERYTHING);
-
-	//create window
-	window = SDL_CreateWindow("Raytracer", 
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    
-	SDL_Renderer *renderer = NULL;
-	renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED);
-	//BACKGROUND COLOUR SET
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_RenderClear(renderer);
-
-
-	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
-		for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
-			//CALL OUR DRAW LOOP FUNCTION
-			drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE);
-			SDL_RenderPresent(renderer);
-		}
-	}
-
-
-
-	printf("done");
-
-	SDL_Delay(DISPLAY_TIME);
-	//Destroy window
-    SDL_DestroyWindow(window);
-    //Quit SDL subsystems
-    SDL_Quit();
-    return 0;
-}
-
-__global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
+__global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid, uint32_t* textureData){
 
 	colour_t dark_red;
 	dark_red.r = 150;
@@ -96,7 +64,7 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
 	//6 Meshes; Meshes = {Spheres, Planes}
-	Scene scene(9);
+	Scene scene(9, textureData);
 	scene.addLight(-1,8,6,10);
 	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	//scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
@@ -107,10 +75,9 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 	scene.addSphere(2,10,5,2.5,dark_red,SHINY);
 	scene.addSphere(6,9,3,3,cold_blue,DIFFUSE);
 	scene.addSphere(6,7,-1,2,cold_blue,SHINY);
-	scene.addSphere(-2,6,0,2,soft_red,WATER);
+	scene.addSphere(-2,6,0,1.2,soft_red,WATER);
 	scene.addSphere(-6,8,-2,2,soft_red,GLASS);
-	scene.addSphere(-9,8,3,3,bright_green,DIFFUSE);
-
+	scene.addSphere(-9,8,3,3,bright_green,TEXTURE);
 
 
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
@@ -119,12 +86,13 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid){
 }
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
-void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
+void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, uint32_t* h_texture){
 
 	//vector_t locDir = scene->getCamera().getLocDir();
 	vector_t locDir(0,0,0,0,3,0);
 	//float ZOOM_FACTOR = scene->getCamera().getGridSize();
 	float ZOOM_FACTOR = 0.01f;
+
 
 	vector_t* thisLocDir = (vector_t*)malloc(squareSize*squareSize*sizeof(vector_t));
 	colour_t* col = (colour_t*)malloc(squareSize*squareSize*sizeof(colour_t));
@@ -147,25 +115,29 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 
 
 
-	//TODO:modify code to exploit dim3 struct of kernel call instead of using a linear array
+
 	//CALL PARALLEL CUDA ALGORITHM HERE
 	vector_t* d_lightRay;
 	colour_t* d_colourGrid;
+	uint32_t* d_textureData;
 
 	cudaMalloc((void**) &d_lightRay, sizeof(vector_t)*squareSize*squareSize);
 	cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*squareSize*squareSize);
+	cudaMalloc((void**) &d_textureData, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH);
 
 	cudaMemcpy(d_lightRay, thisLocDir, sizeof(vector_t)*squareSize*squareSize, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
 
 	//calculateIntensityFromIntersections(thisLocDir, scene, col, squareSize*squareSize);
 	//CURRENTLY SPECIFIC TO 80 BLOCKS CHANGE THIS LOL
-	cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_lightRay, d_colourGrid);
+	cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_lightRay, d_colourGrid, d_textureData);
 
 	cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSize*squareSize, cudaMemcpyDeviceToHost);
 
 
 	cudaFree(d_lightRay);
 	cudaFree(d_colourGrid);
+	cudaFree(d_textureData);
 	//END OF GPU CALLING CUDA CODE
 
 
@@ -185,4 +157,91 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize){
 
 	free(thisLocDir);
 	free(col);
+}
+
+int main()
+{
+    SDL_Window* window = NULL;
+	SDL_Init(SDL_INIT_EVERYTHING);
+
+	//create window
+	window = SDL_CreateWindow("Raytracer", 
+		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    
+	SDL_Renderer *renderer = NULL;
+	renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED);
+	//BACKGROUND COLOUR SET
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_RenderClear(renderer);
+
+
+	//////////////START OF TEXTURE LOAD
+	SDL_Surface* texture;
+	texture = IMG_Load("texture.png");
+	if(!texture){
+		printf("ERROR:%s", IMG_GetError());
+	}
+
+
+	uint32_t* tData = (uint32_t*)malloc(600*300*sizeof(uint32_t));
+	for(int i=0;i<TEXTURE_WIDTH*TEXTURE_HEIGHT;i++){
+		tData[i] = getpixel(texture, i%TEXTURE_WIDTH, i/TEXTURE_WIDTH);
+	}
+	//END OF TEXTURE LOAD
+
+
+
+	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
+		for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
+			//CALL OUR DRAW LOOP FUNCTION
+			drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE, tData);
+			SDL_RenderPresent(renderer);
+		}
+	}
+	
+
+
+	printf("done");
+
+	IMG_Quit();
+	free(tData);
+	SDL_Delay(DISPLAY_TIME);
+	//Destroy window
+    SDL_DestroyWindow(window);
+    //Quit SDL subsystems
+    SDL_Quit();
+    return 0;
+}
+
+//UTILITY FUNCTION COURTESY OF sdl.beuc.net/sdl.wiki/Pixel_Access
+
+uint32_t getpixel(SDL_Surface *surface, int x, int y)
+{
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to retrieve */
+    uint8_t *p = (uint8_t *)surface->pixels + y * surface->pitch + x * bpp;
+
+    switch(bpp) {
+    case 1:
+        return *p;
+        break;
+
+    case 2:
+        return *(uint16_t *)p;
+        break;
+
+    case 3:
+        if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+            return p[0] << 16 | p[1] << 8 | p[2];
+        else
+            return p[0] | p[1] << 8 | p[2] << 16;
+        break;
+
+    case 4:
+        return *(uint32_t *)p;
+        break;
+
+    default:
+        return 0;       /* shouldn't happen, but avoids warnings */
+    }
 }

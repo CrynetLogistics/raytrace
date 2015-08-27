@@ -1,7 +1,7 @@
 #include "Tri.h"
 
-__device__ Tri::Tri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, Material material)
-	:material(material){
+__device__ Tri::Tri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, materialType_t materialType){
+	material.initMaterial(materialType);
 	this->v1 = v1;
 	this->v2 = v2;
 	this->v3 = v3;
@@ -67,7 +67,7 @@ __device__ vector_t Tri::getNormal(vertex_t pos, vector_t incoming){
 	return normal;
 }
 
-__device__ colour_t Tri::getColour(void){
+__device__ colour_t Tri::getColour(vertex_t position){
 	return colour;
 }
 

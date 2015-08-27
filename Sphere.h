@@ -15,8 +15,9 @@ public:
 	__device__ float getIntersectionParameter(vector_t lightRay) override;
 	__device__ float getShadowedStatus(vector_t lightRay, float t, Light light) override;
 	__device__ vector_t getNormal(vertex_t pos, vector_t incoming) override;
-	__device__ Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material);
-	__device__ colour_t getColour(void) override;
+	__device__ Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, materialType_t materialType);
+	__device__ Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, uint32_t* textureData);
+	__device__ colour_t getColour(vertex_t position) override;
 	__device__ Material getMaterial(void) override;
 	__device__ ~Sphere(void);
 };

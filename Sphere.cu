@@ -1,7 +1,10 @@
 #include "Sphere.h"
 
-__device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, Material material)
-	:material(material){
+#define PI 3.14159
+#define SPHERICAL_MAP 0
+
+__device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, materialType_t materialType){
+	material.initMaterial(materialType);
 	centre.x = centreX;
 	centre.y = centreY;
 	centre.z = centreZ;
@@ -9,7 +12,17 @@ __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float rad
 	this->colour.r = colour.r;
 	this->colour.g = colour.g;
 	this->colour.b = colour.b;
-	this->material = material;
+}
+
+__device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, uint32_t* textureData){
+	material.initMaterial(textureData);
+	centre.x = centreX;
+	centre.y = centreY;
+	centre.z = centreZ;
+	this->radius = radius;
+	this->colour.r = colour.r;
+	this->colour.g = colour.g;
+	this->colour.b = colour.b;
 }
 
 __device__ float Sphere::getRadius(void){
@@ -66,8 +79,37 @@ __device__ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
 	return normalVector;
 }
 
-__device__ colour_t Sphere::getColour(void){
-	return colour;
+__device__ colour_t Sphere::getColour(vertex_t position){
+	if(material.isTextured()>=2){
+		vector_t r(centre, position);
+		vector_t s(centre, position);
+		s.zt = 0;
+
+		vector_t k_unit(0,0,0,0,0,1);
+		vector_t i_unit(0,0,0,1,0,0);
+
+		float cosine_phi = k_unit.directionDotProduct(r)/r.directionMagnitude();
+		float cosine_theta = i_unit.directionDotProduct(s)/s.directionMagnitude();
+
+		int x;
+		if(SPHERICAL_MAP){
+			if(s.yt>0){//theta < pi
+				x = 300*(1-acosf(cosine_theta)/PI);
+			}else{//theta >= pi
+				x = 300*acosf(cosine_theta)/PI;
+			}
+		}else{
+			x = 600*(cosine_theta+1)/2;
+		}
+		int y = 300*(cosine_phi+1)/2;
+
+		colour.r = (material.getTexture()[600*y+x] & 0x000000FF) >> 0;
+		colour.g = (material.getTexture()[600*y+x] & 0x0000FF00) >> 8;
+		colour.b = (material.getTexture()[600*y+x] & 0x00FF0000) >> 16;
+		return colour;
+	}else{
+		return colour;
+	}
 }
 
 __device__ Material Sphere::getMaterial(void){

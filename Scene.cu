@@ -1,11 +1,13 @@
 #include "Scene.h"
 
 //default lamp
-__device__ Scene::Scene(int totalMeshes)
+__device__ Scene::Scene(int totalMeshes, uint32_t* textureData)
 	:light(0, 0, 10, 10){
 	this->totalMeshes = totalMeshes;
+	this->textureData = textureData;
+	
+	meshes = (Mesh**)malloc(totalMeshes*sizeof(Mesh*));
 	numOfMeshes = 0;
-	meshes = (Mesh**)malloc(numOfMeshes*sizeof(Mesh*));
 }
 
 __host__ __device__ Mesh* Scene::getMesh(int number){
@@ -21,16 +23,22 @@ __host__ __device__ Camera Scene::getCamera(void){
 	return camera;
 }
 
-__device__ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, Material material){
+__device__ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, materialType_t material){
 	numOfMeshes++;
 
-	Sphere *s = new Sphere(centreX, centreY, centreZ, radius, col, material);
+	Sphere *s;
+
+	if(material!=TEXTURE){
+		s = new Sphere(centreX, centreY, centreZ, radius, col, material);
+	}else{
+		s = new Sphere(centreX, centreY, centreZ, radius, col, textureData);
+	}
 
 	Mesh *m = s;
 	meshes[numOfMeshes-1] = m;
 }
 
-__device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, Material material){
+__device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, materialType_t material){
 	numOfMeshes++;
 
 	Plane *p = new Plane(v1, v2, v3, v4, colour, material);
@@ -39,7 +47,7 @@ __device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t 
 	meshes[numOfMeshes-1] = m;
 }
 
-__device__ void Scene::addTri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, Material material){
+__device__ void Scene::addTri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, materialType_t material){
 	numOfMeshes++;
 
 	Tri *t = new Tri(v1, v2, v3, colour, material);

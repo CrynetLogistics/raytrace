@@ -1,6 +1,7 @@
 #pragma once
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include "stdint.h"
 
 typedef struct vertex{
 	float x;
