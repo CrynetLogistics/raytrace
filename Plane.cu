@@ -58,17 +58,16 @@ __device__ float Plane::getShadowedStatus(vector_t lightRay, float t, Light ligh
 	}
 }
 
-//TODO:CURRENTLY UNUSED FEATURE - NORMAL RETURNED IN THE SAME DIRECTION AS REFLECTED RAY
 __device__ vector_t Plane::getNormal(vertex_t pos, vector_t incoming){
-	//if(normal.directionDotProduct(incoming)>0){
-	//	normal.xt = -1*normal.xt;
-	//	normal.yt = -1*normal.yt;
-	//	normal.zt = -1*normal.zt;
-	//}
-	normal.x0 = pos.x;
-	normal.y0 = pos.y;
-	normal.z0 = pos.z;
-	return normal;
+	vector_t normalFromPos;
+	normalFromPos.xt = normal.xt;
+	normalFromPos.yt = normal.yt;
+	normalFromPos.zt = normal.zt;
+	normalFromPos.x0 = pos.x;
+	normalFromPos.y0 = pos.y;
+	normalFromPos.z0 = pos.z;
+
+	return normalFromPos;
 }
 
 __device__ colour_t Plane::getColour(vertex_t position){

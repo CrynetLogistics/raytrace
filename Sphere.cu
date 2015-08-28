@@ -41,12 +41,9 @@ __device__ float Sphere::getIntersectionParameter(vector_t lightRay){
 	float b = 2*(lightRay.xt*acx + lightRay.yt*acy + lightRay.zt*acz);
 	float c = acx*acx + acy*acy + acz*acz - radius*radius;
 	
-	//std::cout<<sqrt(b*b-4*a*c);
 	if(b*b-4*a*c>=0){
 		float t = (-b-sqrt(b*b-4*a*c))/(2*a);
-		//std::cout<<t/1000;
-		//return t*60;
-		return t;//lightRay.calculateDistance(t);
+		return t;
 	}else{
 		return 0;
 	}
@@ -68,14 +65,9 @@ __device__ float Sphere::getShadowedStatus(vector_t lightRay, float t, Light lig
 	}
 }
 
-//TODO:CURRENTLY UNUSED FEATURE - NORMAL RETURNED IN THE SAME DIRECTION AS REFLECTED RAY
 __device__ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
 	vector_t normalVector(pos.x, pos.y, pos.z, pos.x-centre.x, pos.y-centre.y, pos.z-centre.z);
-	//if(normalVector.directionDotProduct(incoming)>0){
-	//	normalVector.xt = -1*normalVector.xt;
-	//	normalVector.yt = -1*normalVector.yt;
-	//	normalVector.zt = -1*normalVector.zt;
-	//}
+
 	return normalVector;
 }
 
@@ -103,10 +95,12 @@ __device__ colour_t Sphere::getColour(vertex_t position){
 		}
 		int y = 300*(cosine_phi+1)/2;
 
-		colour.r = (material.getTexture()[600*y+x] & 0x000000FF) >> 0;
-		colour.g = (material.getTexture()[600*y+x] & 0x0000FF00) >> 8;
-		colour.b = (material.getTexture()[600*y+x] & 0x00FF0000) >> 16;
-		return colour;
+		colour_t pointColour;
+
+		pointColour.r = (material.getTexture()[600*y+x] & 0x000000FF) >> 0;
+		pointColour.g = (material.getTexture()[600*y+x] & 0x0000FF00) >> 8;
+		pointColour.b = (material.getTexture()[600*y+x] & 0x00FF0000) >> 16;
+		return pointColour;
 	}else{
 		return colour;
 	}

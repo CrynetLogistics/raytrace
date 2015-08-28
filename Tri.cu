@@ -61,10 +61,15 @@ __device__ float Tri::getShadowedStatus(vector_t lightRay, float t, Light light)
 }
 
 __device__ vector_t Tri::getNormal(vertex_t pos, vector_t incoming){
-	normal.x0 = pos.x;
-	normal.y0 = pos.y;
-	normal.z0 = pos.z;
-	return normal;
+	vector_t normalFromPos;
+	normalFromPos.xt = normal.xt;
+	normalFromPos.yt = normal.yt;
+	normalFromPos.zt = normal.zt;
+	normalFromPos.x0 = pos.x;
+	normalFromPos.y0 = pos.y;
+	normalFromPos.z0 = pos.z;
+
+	return normalFromPos;
 }
 
 __device__ colour_t Tri::getColour(vertex_t position){

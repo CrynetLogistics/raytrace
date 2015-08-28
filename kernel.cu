@@ -26,8 +26,7 @@
 
 uint32_t getpixel(SDL_Surface *surface, int x, int y);
 
-__global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid, uint32_t* textureData){
-
+__global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
 	colour_t dark_red;
 	dark_red.r = 150;
 	dark_red.g = 0;
@@ -64,29 +63,51 @@ __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid, uint32_t* t
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
 	//6 Meshes; Meshes = {Spheres, Planes}
-	Scene scene(9, textureData);
-	scene.addLight(-1,8,6,10);
-	scene.addPlane(v1,v2,v3,v4,bright_green,SHINY);
-	//scene.addPlane(v3,v4,v5,v6,bright_green,SHINY);
-	scene.addTri(v3,v4,v5,bright_green,SHINY);
-	//scene.addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
-	//scene.addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
-	//scene.addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
-	scene.addSphere(2,10,5,2.5,dark_red,SHINY);
-	scene.addSphere(6,9,3,3,cold_blue,DIFFUSE);
-	scene.addSphere(6,7,-1,2,cold_blue,SHINY);
-	scene.addSphere(-2,6,0,1.2,soft_red,WATER);
-	scene.addSphere(-6,8,-2,2,soft_red,GLASS);
-	scene.addSphere(-9,8,3,3,bright_green,TEXTURE);
+	//Scene scene(9, textureData);
+	d_scene = new (d_scene) Scene(9, textureData);
+	//d_scene = new Scene(9, textureData);
+	d_scene->addLight(-1,8,6,10);
+	d_scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
+	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
+	d_scene->addTri(v3,v4,v5,bright_green,SHINY);
+	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
+	//scene->addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
+	//scene->addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
+	d_scene->addSphere(2,10,5,2.5,dark_red,SHINY);
+	d_scene->addSphere(6,9,3,3,cold_blue,DIFFUSE);
+	d_scene->addSphere(6,7,-1,2,cold_blue,SHINY);
+	d_scene->addSphere(-2,6,0,1.2,soft_red,WATER);
+	d_scene->addSphere(-6,8,-2,2,soft_red,GLASS);
+	d_scene->addSphere(-9,8,3,3,bright_green,TEXTURE);
+}
 
-
+__global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid, Scene* d_scene){
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
-	Ray ray(lightRay[index], &scene, MAX_ITERATIONS);
+	Ray ray(lightRay[index], d_scene, MAX_ITERATIONS);
 	colGrid[index] = ray.raytrace();
 }
 
+Scene* initScene(uint32_t* h_texture){
+	Scene* d_scene;
+	uint32_t* d_textureData;
+	
+	cudaMalloc((void**) &d_textureData, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH);
+	cudaMalloc((void**) &d_scene, sizeof(Scene));
+	
+	cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
+
+	d_initScene<<<1,1>>>(d_scene, d_textureData);
+
+	return d_scene;
+}
+
+void destroyScene(Scene* d_scene, uint32_t* d_textureData){
+	cudaFree(d_textureData);
+	cudaFree(d_scene);
+}
+
 //where x and y are the top left most coordinates and squareSize is one block being rendered
-void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, uint32_t* h_texture){
+void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, Scene* d_scene){
 
 	//vector_t locDir = scene->getCamera().getLocDir();
 	vector_t locDir(0,0,0,0,3,0);
@@ -119,25 +140,21 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, ui
 	//CALL PARALLEL CUDA ALGORITHM HERE
 	vector_t* d_lightRay;
 	colour_t* d_colourGrid;
-	uint32_t* d_textureData;
 
 	cudaMalloc((void**) &d_lightRay, sizeof(vector_t)*squareSize*squareSize);
 	cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*squareSize*squareSize);
-	cudaMalloc((void**) &d_textureData, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH);
 
 	cudaMemcpy(d_lightRay, thisLocDir, sizeof(vector_t)*squareSize*squareSize, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
 
 	//calculateIntensityFromIntersections(thisLocDir, scene, col, squareSize*squareSize);
 	//CURRENTLY SPECIFIC TO 80 BLOCKS CHANGE THIS LOL
-	cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_lightRay, d_colourGrid, d_textureData);
+	cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_lightRay, d_colourGrid, d_scene);
 
 	cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSize*squareSize, cudaMemcpyDeviceToHost);
 
 
 	cudaFree(d_lightRay);
 	cudaFree(d_colourGrid);
-	cudaFree(d_textureData);
 	//END OF GPU CALLING CUDA CODE
 
 
@@ -183,18 +200,20 @@ int main()
 	}
 
 
-	uint32_t* tData = (uint32_t*)malloc(600*300*sizeof(uint32_t));
+	uint32_t* tData = (uint32_t*)malloc(TEXTURE_WIDTH*TEXTURE_HEIGHT*sizeof(uint32_t));
 	for(int i=0;i<TEXTURE_WIDTH*TEXTURE_HEIGHT;i++){
 		tData[i] = getpixel(texture, i%TEXTURE_WIDTH, i/TEXTURE_WIDTH);
 	}
 	//END OF TEXTURE LOAD
 
 
+	Scene* d_scene = initScene(tData);
+
 
 	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
 		for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
 			//CALL OUR DRAW LOOP FUNCTION
-			drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE, tData);
+			drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE, d_scene);
 			SDL_RenderPresent(renderer);
 		}
 	}
@@ -203,6 +222,7 @@ int main()
 
 	printf("done");
 
+	destroyScene(d_scene, tData);
 	IMG_Quit();
 	free(tData);
 	SDL_Delay(DISPLAY_TIME);
