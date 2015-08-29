@@ -205,7 +205,6 @@ __device__ void Ray::nextRayBounce(void){
 	case BACKSCATTER:
 	{
 		//reestablishes the normal the the point of intersection for next ray bounce
-		//TODO: WHICH DIRECTION ARE THESE NORMALS POINTING??? - is this a source of error?
 		ray = normalRay;
 
 		break;

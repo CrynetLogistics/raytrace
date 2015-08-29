@@ -67,7 +67,7 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
 	d_scene = new (d_scene) Scene(9, textureData);
 	//d_scene = new Scene(9, textureData);
 	d_scene->addLight(-1,8,6,10);
-	d_scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
+	d_scene->addPlane(v1,v2,v3,v4,bright_green,TEXTURE);
 	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	d_scene->addTri(v3,v4,v5,bright_green,SHINY);
 	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);

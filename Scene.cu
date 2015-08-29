@@ -41,7 +41,13 @@ __device__ void Scene::addSphere(float centreX, float centreY, float centreZ, fl
 __device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, materialType_t material){
 	numOfMeshes++;
 
-	Plane *p = new Plane(v1, v2, v3, v4, colour, material);
+	Plane *p;
+
+	if(material!=TEXTURE){
+		p = new Plane(v1, v2, v3, v4, colour, material);
+	}else{
+		p = new Plane(v1, v2, v3, v4, colour, textureData);
+	}
 
 	Mesh *m = p;
 	meshes[numOfMeshes-1] = m;

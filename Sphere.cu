@@ -1,7 +1,7 @@
 #include "Sphere.h"
 
 #define PI 3.14159
-#define SPHERICAL_MAP 0
+#define SPHERICAL_MAP 1
 
 __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, materialType_t materialType){
 	material.initMaterial(materialType);
@@ -83,17 +83,18 @@ __device__ colour_t Sphere::getColour(vertex_t position){
 		float cosine_phi = k_unit.directionDotProduct(r)/r.directionMagnitude();
 		float cosine_theta = i_unit.directionDotProduct(s)/s.directionMagnitude();
 
-		int x;
+		int x,y;
 		if(SPHERICAL_MAP){
 			if(s.yt>0){//theta < pi
 				x = 300*(1-acosf(cosine_theta)/PI);
 			}else{//theta >= pi
 				x = 300*acosf(cosine_theta)/PI;
 			}
+			y = 300*(acosf(cosine_phi))/PI;
 		}else{
 			x = 600*(cosine_theta+1)/2;
+			y = 300*(cosine_phi+1)/2;
 		}
-		int y = 300*(cosine_phi+1)/2;
 
 		colour_t pointColour;
 
