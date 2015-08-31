@@ -1,5 +1,6 @@
 #include "Ray.h"
 
+#define PI 3.14159f
 #define BRIGHTNESS 4
 #define CLIPPING_DISTANCE 999
 #define EPSILON 0.001f
@@ -10,7 +11,9 @@
 #define GLASS_CLARITY 0.6f //[0,1] higher = less of original colour
 #define IOR 1.5f
 #define REFLECTIONAL_LIGHTING 1
-#define MAXIMUM_DEPTH 8
+#define MAXIMUM_DEPTH 5
+#define USE_IMAGE_HORIZON 0
+#define HORIZON_DIM_FACTOR 0.1f
 
 /*
 LIFE CYCLE OF A RAY:
@@ -102,6 +105,50 @@ __device__ void Ray::nextRayBounce(void){
 		//intersectedMeshColour.b = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin)).b;
 		intersectedMeshColour = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin));
 	}else{
+		if(USE_IMAGE_HORIZON){
+			vertex_t boundingSphereIntersection = ray.getPosAtParameter(CLIPPING_DISTANCE);
+			vertex_t boundingSphereCentre;
+			boundingSphereCentre.x = 0;
+			boundingSphereCentre.y = 0;
+			boundingSphereCentre.z = 0;
+
+			vector_t r(boundingSphereCentre, boundingSphereIntersection);
+			vector_t s(boundingSphereCentre, boundingSphereIntersection);
+			s.zt = 0;
+
+			vector_t k_unit(0,0,0,0,0,1);
+			vector_t i_unit(0,0,0,1,0,0);
+
+			float cosine_phi = k_unit.directionDotProduct(r)/r.directionMagnitude();
+			float cosine_theta = i_unit.directionDotProduct(s)/s.directionMagnitude();
+
+			int x,y;
+			if(1){
+				if(s.yt>0){//theta < pi
+					x = 300*(1-acosf(cosine_theta)/PI);
+				}else{//theta >= pi
+					x = 300*acosf(cosine_theta)/PI;
+				}
+				y = 300*(acosf(cosine_phi))/PI;
+			}else{
+				x = 600*(cosine_theta+1)/2;
+				y = 300*(cosine_phi+1)/2;
+			}
+
+			colour_t pointColour;
+
+			pointColour.r = (scene->getTexture()[600*y+x] & 0x000000FF) >> 0;
+			pointColour.g = (scene->getTexture()[600*y+x] & 0x0000FF00) >> 8;
+			pointColour.b = (scene->getTexture()[600*y+x] & 0x00FF0000) >> 16;
+
+			pathColour.r += pointColour.r*BRIGHTNESS*HORIZON_DIM_FACTOR;
+			pathColour.g += pointColour.g*BRIGHTNESS*HORIZON_DIM_FACTOR;
+			pathColour.b += pointColour.b*BRIGHTNESS*HORIZON_DIM_FACTOR;
+		}else{
+			pathColour.r += scene->getHorizonColour().r*BRIGHTNESS*HORIZON_DIM_FACTOR;
+			pathColour.g += scene->getHorizonColour().g*BRIGHTNESS*HORIZON_DIM_FACTOR;
+			pathColour.b += scene->getHorizonColour().b*BRIGHTNESS*HORIZON_DIM_FACTOR;
+		}
 		rayType = CLIPPING;
 		return;
 	}

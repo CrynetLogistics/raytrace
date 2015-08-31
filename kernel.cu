@@ -43,6 +43,10 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
 	cold_blue.r = 12;
 	cold_blue.g = 37;
 	cold_blue.b = 255;
+	colour_t black;
+	black.r = 0;
+	black.g = 0;
+	black.b = 0;
 
 	vertex_t v1;
 	vertex_t v2;
@@ -67,7 +71,8 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
 	d_scene = new (d_scene) Scene(9, textureData);
 	//d_scene = new Scene(9, textureData);
 	d_scene->addLight(-1,8,6,10);
-	d_scene->addPlane(v1,v2,v3,v4,bright_green,TEXTURE);
+	d_scene->setHorizonColour(black);
+	d_scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	d_scene->addTri(v3,v4,v5,bright_green,SHINY);
 	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
@@ -78,7 +83,7 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
 	d_scene->addSphere(6,7,-1,2,cold_blue,SHINY);
 	d_scene->addSphere(-2,6,0,1.2,soft_red,WATER);
 	d_scene->addSphere(-6,8,-2,2,soft_red,GLASS);
-	d_scene->addSphere(-9,8,3,3,bright_green,TEXTURE);
+	d_scene->addSphere(-9,8,3,3,bright_green,SHINY);
 }
 
 __global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid, Scene* d_scene){
@@ -114,7 +119,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, Sc
 	//float ZOOM_FACTOR = scene->getCamera().getGridSize();
 	float ZOOM_FACTOR = 0.01f;
 
-
+	
 	vector_t* thisLocDir = (vector_t*)malloc(squareSize*squareSize*sizeof(vector_t));
 	colour_t* col = (colour_t*)malloc(squareSize*squareSize*sizeof(colour_t));
 

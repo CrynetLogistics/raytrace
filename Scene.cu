@@ -74,6 +74,18 @@ __host__ __device__ Light Scene::getLight(void){
 	return light;
 }
 
+__host__ __device__ uint32_t* Scene::getTexture(void){
+	return textureData;
+}
+
+__device__ void Scene::setHorizonColour(colour_t horizonColour){
+	this->horizonColour = horizonColour;
+}
+
+__device__ colour_t Scene::getHorizonColour(void){
+	return horizonColour;
+}
+
 __device__ Scene::~Scene(void){
 	for(int i=0;i<numOfMeshes;i++){
 		free(meshes[i]);

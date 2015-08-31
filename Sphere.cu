@@ -1,6 +1,6 @@
 #include "Sphere.h"
 
-#define PI 3.14159
+#define PI 3.14159f
 #define SPHERICAL_MAP 1
 
 __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, materialType_t materialType){

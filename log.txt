@@ -34,7 +34,10 @@ the recursion will be arbitarily deep, will find an iterative alternative
 65 - introduced texture support for spheres
 67 - 2 mapping systems for textures
 69 - implemented experimental features for shared memory - scene/textures now loaded into global device memory before render, significant improvements to render speed and performance responsiveness, 2.6s rendertime
-
+70 - texture maps for planes
+71 - texture map reflectivity spheres/planes
+73 - introduction of horizon lighting by textures
+75 - full implementation of horizon lighting including solid colours
 
 Features:
 CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris, Textures
