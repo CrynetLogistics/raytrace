@@ -1,7 +1,7 @@
 #include "Scene.h"
 
 //default lamp
-__device__ Scene::Scene(int totalMeshes, uint32_t* textureData)
+__host__ __device__ Scene::Scene(int totalMeshes, uint32_t* textureData)
 	:light(0, 0, 10, 10){
 	this->totalMeshes = totalMeshes;
 	this->textureData = textureData;
@@ -23,7 +23,7 @@ __host__ __device__ Camera Scene::getCamera(void){
 	return camera;
 }
 
-__device__ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, materialType_t material){
+__host__ __device__ void Scene::addSphere(float centreX, float centreY, float centreZ, float radius, colour_t col, materialType_t material){
 	numOfMeshes++;
 
 	Sphere *s;
@@ -38,7 +38,7 @@ __device__ void Scene::addSphere(float centreX, float centreY, float centreZ, fl
 	meshes[numOfMeshes-1] = m;
 }
 
-__device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, materialType_t material){
+__host__ __device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t v4, colour_t colour, materialType_t material){
 	numOfMeshes++;
 
 	Plane *p;
@@ -53,7 +53,7 @@ __device__ void Scene::addPlane(vertex_t v1, vertex_t v2, vertex_t v3, vertex_t 
 	meshes[numOfMeshes-1] = m;
 }
 
-__device__ void Scene::addTri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, materialType_t material){
+__host__ __device__ void Scene::addTri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, materialType_t material){
 	numOfMeshes++;
 
 	Tri *t = new Tri(v1, v2, v3, colour, material);
@@ -78,15 +78,15 @@ __host__ __device__ uint32_t* Scene::getTexture(void){
 	return textureData;
 }
 
-__device__ void Scene::setHorizonColour(colour_t horizonColour){
+__host__ __device__ void Scene::setHorizonColour(colour_t horizonColour){
 	this->horizonColour = horizonColour;
 }
 
-__device__ colour_t Scene::getHorizonColour(void){
+__host__ __device__ colour_t Scene::getHorizonColour(void){
 	return horizonColour;
 }
 
-__device__ Scene::~Scene(void){
+__host__ __device__ Scene::~Scene(void){
 	for(int i=0;i<numOfMeshes;i++){
 		free(meshes[i]);
 	}

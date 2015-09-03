@@ -14,6 +14,7 @@
 #define MAXIMUM_DEPTH 5
 #define USE_IMAGE_HORIZON 0
 #define HORIZON_DIM_FACTOR 0.1f
+#define CUDA_RENDER 1
 
 /*
 LIFE CYCLE OF A RAY:
@@ -26,7 +27,7 @@ NOTE: Even if DIRECT is given to a ray, it can still encounter other objects
 that might obstruct its path in future - in this case, it will be given a 
 BACKSCATTER when that occurs
 */
-__device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES){
+__host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES){
 	ray = initial;
 	this->scene = scene;
 	this->MAX_BOUNCES = MAX_BOUNCES;
@@ -44,7 +45,7 @@ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES){
 	secondaryDepth = 0;
 }
 
-__device__ colour_t Ray::raytrace(void){
+__host__ __device__ colour_t Ray::raytrace(void){
 	int rayLevel = 0;
 	while(rayLevel <= secondaryDepth){
 		if(rayLevel != 0){
@@ -83,7 +84,7 @@ __device__ colour_t Ray::raytrace(void){
 	return totalColour;
 }
 
-__device__ void Ray::nextRayBounce(void){
+__host__ __device__ void Ray::nextRayBounce(void){
 	rayNumber++;
 	float tMin = CLIPPING_DISTANCE;
 	int iMin = 0;
@@ -283,7 +284,7 @@ __device__ void Ray::nextRayBounce(void){
 		}
 
 		//SPECULARITY
-		float specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
+		specularityHighlight = normalRay.directionDotProduct(directRay)/(normalRay.directionMagnitude()*directRay.directionMagnitude());
 		break;
 	}
 	default:
@@ -292,6 +293,6 @@ __device__ void Ray::nextRayBounce(void){
 	}
 }
 
-__device__ Ray::~Ray(void){
+__host__ __device__ Ray::~Ray(void){
 	free(secondary);
 }

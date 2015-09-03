@@ -3,7 +3,7 @@
 #define PI 3.14159f
 #define SPHERICAL_MAP 1
 
-__device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, materialType_t materialType){
+__host__ __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, materialType_t materialType){
 	material.initMaterial(materialType);
 	centre.x = centreX;
 	centre.y = centreY;
@@ -14,7 +14,7 @@ __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float rad
 	this->colour.b = colour.b;
 }
 
-__device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, uint32_t* textureData){
+__host__ __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, uint32_t* textureData){
 	material.initMaterial(textureData);
 	centre.x = centreX;
 	centre.y = centreY;
@@ -25,15 +25,15 @@ __device__ Sphere::Sphere(float centreX, float centreY, float centreZ, float rad
 	this->colour.b = colour.b;
 }
 
-__device__ float Sphere::getRadius(void){
+__host__ __device__ float Sphere::getRadius(void){
 	return radius;
 }
 
-__device__ vertex_t Sphere::getCentre(void){
+__host__ __device__ vertex_t Sphere::getCentre(void){
 	return centre;
 }
 
-__device__ float Sphere::getIntersectionParameter(vector_t lightRay){
+__host__ __device__ float Sphere::getIntersectionParameter(vector_t lightRay){
 	float acx = lightRay.x0-centre.x;
 	float acy = lightRay.y0-centre.y;
 	float acz = lightRay.z0-centre.z;
@@ -51,7 +51,7 @@ __device__ float Sphere::getIntersectionParameter(vector_t lightRay){
 
 //returns a negative for false and positive for true
 //magnitude of the number from 0 to 1 to indicate distance from extremum
-__device__ float Sphere::getShadowedStatus(vector_t lightRay, float t, Light light){
+__host__ __device__ float Sphere::getShadowedStatus(vector_t lightRay, float t, Light light){
 	vertex_t pos = lightRay.getPosAtParameter(t);
 	vector_t normalVector(pos.x, pos.y, pos.z, pos.x-centre.x, pos.y-centre.y, pos.z-centre.z);
 	vector_t lightVector(pos.x, pos.y, pos.z, light.getPos().x-pos.x, light.getPos().y-pos.y, light.getPos().z-pos.z);
@@ -65,13 +65,13 @@ __device__ float Sphere::getShadowedStatus(vector_t lightRay, float t, Light lig
 	}
 }
 
-__device__ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
+__host__ __device__ vector_t Sphere::getNormal(vertex_t pos, vector_t incoming){
 	vector_t normalVector(pos.x, pos.y, pos.z, pos.x-centre.x, pos.y-centre.y, pos.z-centre.z);
 
 	return normalVector;
 }
 
-__device__ colour_t Sphere::getColour(vertex_t position){
+__host__ __device__ colour_t Sphere::getColour(vertex_t position){
 	if(material.isTextured()>=2){
 		vector_t r(centre, position);
 		vector_t s(centre, position);
@@ -107,9 +107,9 @@ __device__ colour_t Sphere::getColour(vertex_t position){
 	}
 }
 
-__device__ Material Sphere::getMaterial(void){
+__host__ __device__ Material Sphere::getMaterial(void){
 	return material;
 }
 
-__device__ Sphere::~Sphere(void){
+__host__ __device__ Sphere::~Sphere(void){
 }

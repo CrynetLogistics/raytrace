@@ -1,6 +1,6 @@
 #include "Tri.h"
 
-__device__ Tri::Tri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, materialType_t materialType){
+__host__ __device__ Tri::Tri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, materialType_t materialType){
 	material.initMaterial(materialType);
 	this->v1 = v1;
 	this->v2 = v2;
@@ -19,7 +19,7 @@ __device__ Tri::Tri(vertex_t v1, vertex_t v2, vertex_t v3, colour_t colour, mate
 	this->material = material;
 }
 
-__device__ float Tri::getIntersectionParameter(vector_t lightRay){
+__host__ __device__ float Tri::getIntersectionParameter(vector_t lightRay){
 	float t;
 	vector_t lightSource(0,0,0,lightRay.x0,lightRay.y0,lightRay.z0);
 	vector_t lightDirection(0,0,0,lightRay.xt,lightRay.yt,lightRay.zt);
@@ -48,7 +48,7 @@ __device__ float Tri::getIntersectionParameter(vector_t lightRay){
 }
 
 //for self shadowing only (isShadowed)
-__device__ float Tri::getShadowedStatus(vector_t lightRay, float t, Light light){
+__host__ __device__ float Tri::getShadowedStatus(vector_t lightRay, float t, Light light){
 	vertex_t pos = lightRay.getPosAtParameter(t);
 	vector_t lightVector(pos.x, pos.y, pos.z, light.getPos().x-pos.x, light.getPos().y-pos.y, light.getPos().z-pos.z);
 	vector_t cameraVector(pos.x, pos.y, pos.z, -1*lightRay.xt, -1*lightRay.yt, -1*lightRay.zt);
@@ -60,7 +60,7 @@ __device__ float Tri::getShadowedStatus(vector_t lightRay, float t, Light light)
 	}
 }
 
-__device__ vector_t Tri::getNormal(vertex_t pos, vector_t incoming){
+__host__ __device__ vector_t Tri::getNormal(vertex_t pos, vector_t incoming){
 	vector_t normalFromPos;
 	normalFromPos.xt = normal.xt;
 	normalFromPos.yt = normal.yt;
@@ -72,13 +72,13 @@ __device__ vector_t Tri::getNormal(vertex_t pos, vector_t incoming){
 	return normalFromPos;
 }
 
-__device__ colour_t Tri::getColour(vertex_t position){
+__host__ __device__ colour_t Tri::getColour(vertex_t position){
 	return colour;
 }
 
-__device__ Material Tri::getMaterial(void){
+__host__ __device__ Material Tri::getMaterial(void){
 	return material;
 }
 
-__device__ Tri::~Tri(void){
+__host__ __device__ Tri::~Tri(void){
 }
