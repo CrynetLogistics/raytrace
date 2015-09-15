@@ -23,9 +23,10 @@
 #define NUM_OF_BLOCKS 25
 #define TEXTURE_WIDTH 600
 #define TEXTURE_HEIGHT 300
-#define USE_CUDA 0
+#define USE_CUDA 1
 
 uint32_t getpixel(SDL_Surface *surface, int x, int y);
+void processColourOverspill(SDL_Renderer *renderer, colour_t col);
 
 __global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
 	colour_t dark_red;
@@ -238,8 +239,8 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, Sc
 			if(col[index].r<=255 && col[index].g<=255 && col[index].b<=255){
 				SDL_SetRenderDrawColor(renderer, (int)col[index].r, (int)col[index].g, (int)col[index].b, 255);
 			}else{
-				//draw bright flourescent pink for regions out of colour range nice one zl
-				SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+				//handle overspill colours
+				processColourOverspill(renderer, col[index]);
 			}
 			SDL_RenderDrawPoint(renderer, i, j);
 		}
@@ -313,8 +314,24 @@ int main()
     return 0;
 }
 
-//UTILITY FUNCTION COURTESY OF sdl.beuc.net/sdl.wiki/Pixel_Access
+//UTILITY FUNCTION TO SCALE COLOURS
+void processColourOverspill(SDL_Renderer *renderer, colour_t col){
+	float max;
+	int r = col.r;
+	int g = col.g;
+	int b = col.b;
+	if(r>b && g>b){
+		max = b;
+	}else if(r>g){
+		max = r;
+	}else{
+		max = g;
+	}
+	float multiplier = 255/max;
+	SDL_SetRenderDrawColor(renderer, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier, 255);
+}
 
+//UTILITY FUNCTION COURTESY OF sdl.beuc.net/sdl.wiki/Pixel_Access
 uint32_t getpixel(SDL_Surface *surface, int x, int y)
 {
     int bpp = surface->format->BytesPerPixel;

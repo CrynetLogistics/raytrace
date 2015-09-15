@@ -39,6 +39,7 @@ the recursion will be arbitarily deep, will find an iterative alternative
 73 - introduction of horizon lighting by textures
 75 - full implementation of horizon lighting including solid colours
 77 - enabled CPU rendering, test scene - (CPU:4.55s,GPU:2.48s)
+78 - fixed pink colour overspills
 
 Features:
 CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris, Textures
