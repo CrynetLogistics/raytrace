@@ -13,22 +13,36 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#undef main
+//-----------------------------------------------------------------------------
+
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
+//IF USE_BLOCK_BY_BLOCKING_RENDERING == 1
+//	THEN RENDER_SQUARE_SIZE*RENDER_SQUARE_SIZE = THREADS_PER_BLOCK*NUM_OF_BLOCKS
+//	ELSE SCREEN_WIDTH*SCREEN_HEIGHT = THREADS_PER_BLOCK*NUM_OF_BLOCKS
 #define RENDER_SQUARE_SIZE 80
-#define DISPLAY_TIME 30000
-#define MAX_ITERATIONS 4
+//
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 25
+//#define THREADS_PER_BLOCK 1024
+//#define NUM_OF_BLOCKS 900
+//
+#define USE_CUDA 1
+#define USE_BLOCK_BY_BLOCKING_RENDERING 1
+
+//-----------------------------------------------------------------------------
+#undef main
+#define MAX_ANIMATION_ITERATIONS 20
+#define DISPLAY_TIME 30000
+#define MAX_ITERATIONS 3
 #define TEXTURE_WIDTH 600
 #define TEXTURE_HEIGHT 300
-#define USE_CUDA 1
-
+//-----------------------------------------------------------------------------
 uint32_t getpixel(SDL_Surface *surface, int x, int y);
 void processColourOverspill(SDL_Renderer *renderer, colour_t col);
+//-----------------------------------------------------------------------------
 
-__global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
+__global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param){
 	colour_t dark_red;
 	dark_red.r = 150;
 	dark_red.g = 0;
@@ -83,26 +97,33 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData){
 	d_scene->addSphere(2,10,5,2.5,dark_red,SHINY);
 	d_scene->addSphere(6,9,3,3,cold_blue,DIFFUSE);
 	d_scene->addSphere(6,7,-1,2,cold_blue,SHINY);
-	d_scene->addSphere(-2,6,0,1.2,soft_red,WATER);
-	d_scene->addSphere(-6,8,-2,2,soft_red,GLASS);
+	d_scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
+	d_scene->addSphere(*d_param-6,8,-2,2,soft_red,GLASS);
 	d_scene->addSphere(-9,8,3,3,bright_green,SHINY);
 }
 
-Scene* d_initScene(uint32_t* h_texture){
+Scene* d_initScene(uint32_t* h_texture, int t){//TODO:finish d_implementation
 	Scene* d_scene;
 	uint32_t* d_textureData;
+	int* h_param = (int*)malloc(sizeof(int));
+	*h_param = t;
+	int* d_param;
 	
+	cudaMalloc((void**) &d_param, sizeof(int));
 	cudaMalloc((void**) &d_textureData, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH);
 	cudaMalloc((void**) &d_scene, sizeof(Scene));
 	
+	cudaMemcpy(d_param, h_param, sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
 
-	d_initScene<<<1,1>>>(d_scene, d_textureData);
+	d_initScene<<<1,1>>>(d_scene, d_textureData, d_param);
 
+	cudaFree(d_param);
+	free(h_param);
 	return d_scene;
 }
 
-Scene* h_initScene(uint32_t* h_texture){
+Scene* h_initScene(uint32_t* h_texture, int t){
 	colour_t dark_red;
 	dark_red.r = 150;
 	dark_red.g = 0;
@@ -148,9 +169,9 @@ Scene* h_initScene(uint32_t* h_texture){
 	scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	scene->addTri(v3,v4,v5,bright_green,SHINY);
 	scene->addSphere(2,10,5,2.5,dark_red,SHINY);
-	scene->addSphere(6,9,3,3,cold_blue,DIFFUSE);
+	scene->addSphere(6,9,3,t,cold_blue,DIFFUSE);
 	scene->addSphere(6,7,-1,2,cold_blue,SHINY);
-	scene->addSphere(-2,6,0,1.2,soft_red,WATER);
+	scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
 	scene->addSphere(-6,8,-2,2,soft_red,GLASS);
 	scene->addSphere(-9,8,3,3,bright_green,SHINY);
 
@@ -180,7 +201,7 @@ void h_destroyScene(Scene* h_scene){
 }
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
-void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, Scene* scene){
+void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSizeX, int squareSizeY, Scene* scene){
 
 	//vector_t locDir = scene->getCamera().getLocDir();
 	vector_t locDir(0,0,0,0,3,0);
@@ -188,12 +209,12 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, Sc
 	float ZOOM_FACTOR = 0.01f;
 
 	
-	vector_t* thisLocDir = (vector_t*)malloc(squareSize*squareSize*sizeof(vector_t));
-	colour_t* col = (colour_t*)malloc(squareSize*squareSize*sizeof(colour_t));
+	vector_t* thisLocDir = (vector_t*)malloc(squareSizeX*squareSizeY*sizeof(vector_t));
+	colour_t* col = (colour_t*)malloc(squareSizeX*squareSizeY*sizeof(colour_t));
 
-	for(int i=x*squareSize;i<(x+1)*squareSize;i++){
-		for(int j=y*squareSize;j<(y+1)*squareSize;j++){
-			int index = (j-y*squareSize)*squareSize+(i-x*squareSize);
+	for(int i=x*squareSizeX;i<(x+1)*squareSizeX;i++){
+		for(int j=y*squareSizeY;j<(y+1)*squareSizeY;j++){
+			int index = (j-y*squareSizeY)*squareSizeX+(i-x*squareSizeX);
 			//TODO: GENERALISE THIS FORMULA
 			//CURRENTLY: ONLY APPLIES TO CAMERA POINTING ALONG Y DIRECTION
 			thisLocDir[index] = vector_t();
@@ -214,15 +235,15 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, Sc
 		vector_t* d_lightRay;
 		colour_t* d_colourGrid;
 
-		cudaMalloc((void**) &d_lightRay, sizeof(vector_t)*squareSize*squareSize);
-		cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*squareSize*squareSize);
+		cudaMalloc((void**) &d_lightRay, sizeof(vector_t)*squareSizeX*squareSizeY);
+		cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*squareSizeX*squareSizeY);
 
-		cudaMemcpy(d_lightRay, thisLocDir, sizeof(vector_t)*squareSize*squareSize, cudaMemcpyHostToDevice);
+		cudaMemcpy(d_lightRay, thisLocDir, sizeof(vector_t)*squareSizeX*squareSizeY, cudaMemcpyHostToDevice);
 
 		
 		cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_lightRay, d_colourGrid, scene);
 
-		cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSize*squareSize, cudaMemcpyDeviceToHost);
+		cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSizeX*squareSizeY, cudaMemcpyDeviceToHost);
 
 
 		cudaFree(d_lightRay);
@@ -232,9 +253,9 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSize, Sc
 	}
 
 
-	for(int i=x*squareSize;i<(x+1)*squareSize;i++){
-		for(int j=y*squareSize;j<(y+1)*squareSize;j++){
-			int index = (j-y*squareSize)*squareSize+(i-x*squareSize);
+	for(int i=x*squareSizeX;i<(x+1)*squareSizeX;i++){
+		for(int j=y*squareSizeY;j<(y+1)*squareSizeY;j++){
+			int index = (j-y*squareSizeY)*squareSizeX+(i-x*squareSizeX);
 
 			if(col[index].r<=255 && col[index].g<=255 && col[index].b<=255){
 				SDL_SetRenderDrawColor(renderer, (int)col[index].r, (int)col[index].g, (int)col[index].b, 255);
@@ -279,19 +300,24 @@ int main()
 		tData[i] = getpixel(texture, i%TEXTURE_WIDTH, i/TEXTURE_WIDTH);
 	}
 	//END OF TEXTURE LOAD
-
 	Scene* scene;
-	if(USE_CUDA){
-		scene = d_initScene(tData);
-	}else{
-		scene = h_initScene(tData);
-	}
+	for(int t=0; t<MAX_ANIMATION_ITERATIONS; t++){
+		if(USE_CUDA){
+			scene = d_initScene(tData, t);
+		}else{
+			scene = h_initScene(tData, t);
+		}
 
-
-	for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
-		for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
-			//CALL OUR DRAW LOOP FUNCTION
-			drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE, scene);
+		if(USE_BLOCK_BY_BLOCKING_RENDERING){
+			for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
+				for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
+					//CALL OUR DRAW LOOP FUNCTION
+					drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE, RENDER_SQUARE_SIZE, scene);
+					SDL_RenderPresent(renderer);
+				}
+			}
+		}else{
+			drawPixelRaytracer(renderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, scene);
 			SDL_RenderPresent(renderer);
 		}
 	}
@@ -321,11 +347,11 @@ void processColourOverspill(SDL_Renderer *renderer, colour_t col){
 	int g = col.g;
 	int b = col.b;
 	if(r>b && g>b){
-		max = b;
+		max = (float)b;
 	}else if(r>g){
-		max = r;
+		max = (float)r;
 	}else{
-		max = g;
+		max = (float)g;
 	}
 	float multiplier = 255/max;
 	SDL_SetRenderDrawColor(renderer, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier, 255);
@@ -341,23 +367,15 @@ uint32_t getpixel(SDL_Surface *surface, int x, int y)
     switch(bpp) {
     case 1:
         return *p;
-        break;
-
     case 2:
         return *(uint16_t *)p;
-        break;
-
     case 3:
         if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
             return p[0] << 16 | p[1] << 8 | p[2];
         else
             return p[0] | p[1] << 8 | p[2] << 16;
-        break;
-
     case 4:
         return *(uint32_t *)p;
-        break;
-
     default:
         return 0;       /* shouldn't happen, but avoids warnings */
     }
