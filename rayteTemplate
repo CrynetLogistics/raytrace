@@ -1,0 +1,12 @@
+					// everything here is zero indexed
+Verticies:
+	2 				// number of verticies
+	1 6 34 			// (x,y,z)
+	3 77 2532
+Colours:
+	3 				// number of colours
+	89 5 224 		// (r,g,b)
+	25 34 255
+	255 255 255
+Spheres:
+	1 3 2			// (vertex(centre), radius, colour)
