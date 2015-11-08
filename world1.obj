@@ -1,0 +1,6 @@
+# Blender v2.72 (sub 0) OBJ File: ''
+# www.blender.org
+v -10.0 12.0 -3.0
+v 10.0 12.0 -3.0
+v -10.0 12.0 2.0
+f 1 2 3

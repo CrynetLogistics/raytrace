@@ -12,7 +12,9 @@
 #include "Material.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include "parser.h"
 
+#undef main
 //-----------------------------------------------------------------------------
 
 #define SCREEN_WIDTH 1280
@@ -27,12 +29,11 @@
 //#define THREADS_PER_BLOCK 1024
 //#define NUM_OF_BLOCKS 900
 //
-#define USE_CUDA 1
+#define USE_CUDA 0
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
 //-----------------------------------------------------------------------------
-#undef main
-#define MAX_ANIMATION_ITERATIONS 20
+#define MAX_ANIMATION_ITERATIONS 1 // 1 for just a still image
 #define DISPLAY_TIME 30000
 #define MAX_ITERATIONS 3
 #define TEXTURE_WIDTH 600
@@ -102,7 +103,7 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param)
 	d_scene->addSphere(-9,8,3,3,bright_green,SHINY);
 }
 
-Scene* d_initScene(uint32_t* h_texture, int t){//TODO:finish d_implementation
+Scene* d_initScene(uint32_t* h_texture, int t){
 	Scene* d_scene;
 	uint32_t* d_textureData;
 	int* h_param = (int*)malloc(sizeof(int));
@@ -174,6 +175,20 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
 	scene->addSphere(-6,8,-2,2,soft_red,GLASS);
 	scene->addSphere(-9,8,3,3,bright_green,SHINY);
+
+	//auto parser
+
+	scenePrototype_t exterior = parseFile();
+	vertex_t* verts = exterior.verts;
+	triPrototype_t* tris = exterior.tris;
+	int numOfTris = exterior.numOfTris;
+
+	for(int i=0; i<numOfTris; i++){
+		//1 indexed so must switch to 0 indexed
+		scene->addTri(verts[tris[i].v1-1], verts[tris[i].v2-1], verts[tris[i].v3-1], cold_blue, DIFFUSE);
+	}
+
+	//auto parser
 
 	return scene;
 }
