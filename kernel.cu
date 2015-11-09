@@ -29,7 +29,7 @@
 //#define THREADS_PER_BLOCK 1024
 //#define NUM_OF_BLOCKS 900
 //
-#define USE_CUDA 0
+#define USE_CUDA 1
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
 //-----------------------------------------------------------------------------
@@ -43,7 +43,8 @@ uint32_t getpixel(SDL_Surface *surface, int x, int y);
 void processColourOverspill(SDL_Renderer *renderer, colour_t col);
 //-----------------------------------------------------------------------------
 
-__global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param){
+__global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
+							int* d_numOfTris, vertex_t* d_verts, triPrototype_t* d_tris){
 	colour_t dark_red;
 	dark_red.r = 150;
 	dark_red.g = 0;
@@ -101,6 +102,14 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param)
 	d_scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
 	d_scene->addSphere(*d_param-6,8,-2,2,soft_red,GLASS);
 	d_scene->addSphere(-9,8,3,3,bright_green,SHINY);
+
+	//auto parser
+
+	for(int i=0; i<*d_numOfTris; i++){
+		d_scene->addTri(d_verts[d_tris[i].v1-1], d_verts[d_tris[i].v2-1], d_verts[d_tris[i].v3-1], cold_blue, DIFFUSE);
+	}
+
+	//auto parser
 }
 
 Scene* d_initScene(uint32_t* h_texture, int t){
@@ -109,6 +118,30 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 	int* h_param = (int*)malloc(sizeof(int));
 	*h_param = t;
 	int* d_param;
+
+
+	//auto parser
+
+	scenePrototype_t exterior = parseFile();
+	vertex_t* h_verts = exterior.verts;
+	triPrototype_t* h_tris = exterior.tris;
+	int h_numOfTris = exterior.numOfTris;
+	int numOfVerts = exterior.numOfVerts;
+
+	triPrototype_t* d_tris;
+	vertex_t* d_verts;
+	int* d_numOfTris;
+
+	cudaMalloc((void**) &d_tris, h_numOfTris*sizeof(triPrototype_t));
+	cudaMalloc((void**) &d_verts, numOfVerts*sizeof(vertex_t));
+	cudaMalloc((void**) &d_numOfTris, sizeof(int));
+
+	cudaMemcpy(d_tris, h_tris, h_numOfTris*sizeof(triPrototype_t), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_verts, h_verts, numOfVerts*sizeof(vertex_t), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_numOfTris, &h_numOfTris, sizeof(int), cudaMemcpyHostToDevice);
+
+	//auto parser
+
 	
 	cudaMalloc((void**) &d_param, sizeof(int));
 	cudaMalloc((void**) &d_textureData, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH);
@@ -117,7 +150,7 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 	cudaMemcpy(d_param, h_param, sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
 
-	d_initScene<<<1,1>>>(d_scene, d_textureData, d_param);
+	d_initScene<<<1,1>>>(d_scene, d_textureData, d_param, d_numOfTris, d_verts, d_tris);
 
 	cudaFree(d_param);
 	free(h_param);

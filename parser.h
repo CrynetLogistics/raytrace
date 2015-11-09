@@ -8,6 +8,7 @@ typedef struct scenePrototype{
 	vertex_t* verts;
 	triPrototype_t* tris;
 	int numOfTris;
+	int numOfVerts;
 } scenePrototype_t;
 
 scenePrototype_t parseFile();

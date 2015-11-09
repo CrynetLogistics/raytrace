@@ -10,7 +10,7 @@ using namespace std;
 scenePrototype_t parseFile() {
 	ifstream inputFile;
 	scenePrototype_t output;
-	inputFile.open("world1.obj");
+	inputFile.open("world4.obj");
 	if(inputFile.is_open()){
 		//string s;
 		char temC;
@@ -55,6 +55,7 @@ scenePrototype_t parseFile() {
 		output.tris = tris;
 		output.verts = verts;
 		output.numOfTris = numberOfTris;
+		output.numOfVerts = numberOfVerticies;
 		free(s);
 	}else{
 		cerr<<"ERROR: FILE CANNOT BE OPENED"<<endl;
