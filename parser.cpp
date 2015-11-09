@@ -10,7 +10,7 @@ using namespace std;
 scenePrototype_t parseFile() {
 	ifstream inputFile;
 	scenePrototype_t output;
-	inputFile.open("world4.obj");
+	inputFile.open("world7.obj");
 	if(inputFile.is_open()){
 		//string s;
 		char temC;

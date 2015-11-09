@@ -86,7 +86,7 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 
 	//6 Meshes; Meshes = {Spheres, Planes}
 	//Scene scene(9, textureData);
-	d_scene = new (d_scene) Scene(9, textureData);
+	d_scene = new (d_scene) Scene(8 + *d_numOfTris, textureData);
 	//d_scene = new Scene(9, textureData);
 	d_scene->addLight(-1,8,6,10);
 	d_scene->setHorizonColour(black);
@@ -197,7 +197,10 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	v7.x = -30;v7.y = 0;v7.z = 30;
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
-	Scene *scene = new Scene(9, h_texture);
+	//autoparser
+	scenePrototype_t exterior = parseFile();
+
+	Scene *scene = new Scene(8 + exterior.numOfTris, h_texture);
 	scene->addLight(-1,8,6,10);
 	scene->setHorizonColour(black);
 	scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
@@ -211,7 +214,6 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
-	scenePrototype_t exterior = parseFile();
 	vertex_t* verts = exterior.verts;
 	triPrototype_t* tris = exterior.tris;
 	int numOfTris = exterior.numOfTris;
