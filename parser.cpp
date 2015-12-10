@@ -7,10 +7,10 @@
 #include "Auxiliary/structures.h"
 using namespace std;
 
-scenePrototype_t parseFile() {
+scenePrototype_t parseFile(string filename) {
 	ifstream inputFile;
 	scenePrototype_t output;
-	inputFile.open("world7.obj");
+	inputFile.open(filename);
 	if(inputFile.is_open()){
 		//string s;
 		char temC;

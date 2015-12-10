@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "SDL.h"
 #include "SDL_image.h"
 #include "stdio.h"
@@ -13,12 +14,11 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "parser.h"
+#include "kernel.h"
 
 #undef main
 //-----------------------------------------------------------------------------
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
 //IF USE_BLOCK_BY_BLOCKING_RENDERING == 1
 //	THEN RENDER_SQUARE_SIZE*RENDER_SQUARE_SIZE = THREADS_PER_BLOCK*NUM_OF_BLOCKS
 //	ELSE SCREEN_WIDTH*SCREEN_HEIGHT = THREADS_PER_BLOCK*NUM_OF_BLOCKS
@@ -29,7 +29,12 @@
 //#define THREADS_PER_BLOCK 1024
 //#define NUM_OF_BLOCKS 900
 //
-#define USE_CUDA 1
+
+std::string FILENAME;
+int USE_CUDA = 0;
+int SCREEN_WIDTH = 1280;
+int SCREEN_HEIGHT = 720;
+
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
 //-----------------------------------------------------------------------------
@@ -96,12 +101,12 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
 	//scene->addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
 	//scene->addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
-	d_scene->addSphere(2,10,5,2.5,dark_red,SHINY);
+	/*d_scene->addSphere(2,10,5,2.5,dark_red,SHINY);
 	d_scene->addSphere(6,9,3,3,cold_blue,DIFFUSE);
 	d_scene->addSphere(6,7,-1,2,cold_blue,SHINY);
 	d_scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
 	d_scene->addSphere(*d_param-6,8,-2,2,soft_red,GLASS);
-	d_scene->addSphere(-9,8,3,3,bright_green,SHINY);
+	d_scene->addSphere(-9,8,3,3,bright_green,SHINY);*/
 
 	//auto parser
 
@@ -122,7 +127,7 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
-	scenePrototype_t exterior = parseFile();
+	scenePrototype_t exterior = parseFile(FILENAME);
 	vertex_t* h_verts = exterior.verts;
 	triPrototype_t* h_tris = exterior.tris;
 	int h_numOfTris = exterior.numOfTris;
@@ -198,7 +203,7 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
 	//autoparser
-	scenePrototype_t exterior = parseFile();
+	scenePrototype_t exterior = parseFile(FILENAME);
 
 	Scene *scene = new Scene(8 + exterior.numOfTris, h_texture);
 	scene->addLight(-1,8,6,10);
@@ -321,8 +326,13 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSizeX, i
 	free(col);
 }
 
-int main()
+int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i)
 {
+	USE_CUDA = USE_GPU_i;
+	FILENAME = FILENAME_i;
+	SCREEN_HEIGHT = SCREEN_HEIGHT_i;
+	SCREEN_WIDTH = SCREEN_WIDTH_i;
+
     SDL_Window* window = NULL;
 	SDL_Init(SDL_INIT_EVERYTHING);
 
