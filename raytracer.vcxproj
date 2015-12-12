@@ -241,7 +241,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="Plane.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <ClCompile Include="Raytracer.cpp" />
+    <CudaCompile Include="Raytracer.cu" />
     <ClCompile Include="Sphere.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
