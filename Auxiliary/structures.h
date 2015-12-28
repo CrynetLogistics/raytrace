@@ -31,4 +31,10 @@ typedef struct launchParams{
 	int squareSizeY;
 	int SCREEN_X;
 	int SCREEN_Y;
+
+	//supersampling will be performed with a n by n grid
+	//where n = MSAA_SAMPLES
+	//MSAA_INDEX is 0 indexed
+	int MSAA_INDEX;
+	int MSAA_SAMPLES;
 } launchParams_t;

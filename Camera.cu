@@ -40,3 +40,22 @@ __host__ __device__ vector_t Camera::getThisLocationDirection(int i, int j, int 
 
 	return thisLocDir;
 }
+
+__host__ __device__ vector_t Camera::getThisLocationDirection(int i, int j, int SCREEN_WIDTH, int SCREEN_HEIGHT, int MSAA_SAMPLES, int MSAA_INDEX){
+	int fSCREEN_WIDTH = SCREEN_WIDTH*MSAA_SAMPLES;
+	int fSCREEN_HEIGHT = SCREEN_HEIGHT*MSAA_SAMPLES;
+
+	int fi = i*MSAA_SAMPLES + MSAA_INDEX%MSAA_SAMPLES;
+	int fj = j*MSAA_SAMPLES + MSAA_INDEX/MSAA_SAMPLES;
+
+	vector_t thisLocDir = vector_t();
+	thisLocDir.x0 = locDir.x0;
+	thisLocDir.y0 = locDir.y0;
+	thisLocDir.z0 = locDir.z0;
+
+	thisLocDir.xt = locDir.xt + (float)(fi-fSCREEN_WIDTH/2)*ZOOM_FACTOR/MSAA_SAMPLES;
+	thisLocDir.yt = locDir.yt;
+	thisLocDir.zt = locDir.zt + (float)(fSCREEN_HEIGHT/2-fj)*ZOOM_FACTOR/MSAA_SAMPLES;
+
+	return thisLocDir;
+}

@@ -35,6 +35,7 @@ std::string FILENAME;
 int USE_CUDA = 0;
 int SCREEN_WIDTH = 1280;
 int SCREEN_HEIGHT = 720;
+int MSAA_LEVEL = 0;
 
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
@@ -239,8 +240,10 @@ __global__ void cudaShootRays(launchParams_t* thisLaunch, colour_t* colGrid, Sce
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 	int xPosi = index%thisLaunch->squareSizeX + thisLaunch->x*thisLaunch->squareSizeX;
 	int yPosj = index/thisLaunch->squareSizeX + thisLaunch->y*thisLaunch->squareSizeY;
-	vector_t init_vector 
-		= d_scene->getCamera().getThisLocationDirection(xPosi, yPosj, thisLaunch->SCREEN_X, thisLaunch->SCREEN_Y);
+
+	vector_t init_vector = d_scene->getCamera().getThisLocationDirection(
+		xPosi, yPosj, thisLaunch->SCREEN_X, thisLaunch->SCREEN_Y, thisLaunch->MSAA_SAMPLES, thisLaunch->MSAA_INDEX);
+
 	Ray ray(init_vector, d_scene, MAX_ITERATIONS);
 	colGrid[index] = ray.raytrace();
 }
@@ -249,7 +252,10 @@ void cpuShootRays(colour_t* colGrid, Scene* h_scene, int numOfRays, launchParams
 	for(int i=0;i<numOfRays;i++){
 		int xPosi = i%thisLaunch->squareSizeX + thisLaunch->x*thisLaunch->squareSizeX;
 		int yPosj = i/thisLaunch->squareSizeX + thisLaunch->y*thisLaunch->squareSizeY;
-		vector_t init_vector = h_scene->getCamera().getThisLocationDirection(xPosi, yPosj, SCREEN_WIDTH,SCREEN_HEIGHT);
+
+		vector_t init_vector = h_scene->getCamera().getThisLocationDirection(
+			xPosi, yPosj, SCREEN_WIDTH, SCREEN_HEIGHT, thisLaunch->MSAA_SAMPLES, thisLaunch->MSAA_INDEX);
+
 		Ray ray(init_vector, h_scene, MAX_ITERATIONS);
 		colGrid[i] = ray.raytrace();
 	}
@@ -266,55 +272,76 @@ void h_destroyScene(Scene* h_scene){
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
 void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scene* scene){
-	
-	colour_t* col = (colour_t*)malloc(thisLaunch->squareSizeX*thisLaunch->squareSizeY*sizeof(colour_t));
+	int samplesToRender = pow(MSAA_LEVEL+1, 2);
+	int numberOfPixels = thisLaunch->squareSizeX*thisLaunch->squareSizeY;
 
-	if(USE_CUDA){
-		colour_t* d_colourGrid;
-		launchParams_t* d_thisLaunch;
+	//a list of different renderings of the scene
+	colour_t** colDeck = (colour_t**)malloc(sizeof(colour_t*)*samplesToRender);
 
-		cudaMalloc((void**) &d_thisLaunch, sizeof(launchParams_t));
-		cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*thisLaunch->squareSizeX*thisLaunch->squareSizeY);
+	for(int i=0; i<samplesToRender; i++){
+		colour_t* col = (colour_t*)malloc(numberOfPixels*sizeof(colour_t));
 
-		cudaMemcpy(d_thisLaunch, thisLaunch, sizeof(launchParams_t), cudaMemcpyHostToDevice);
+		thisLaunch->MSAA_INDEX = i;
+		if(USE_CUDA){
+			colour_t* d_colourGrid;
+			launchParams_t* d_thisLaunch;
 
-		
-		cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_thisLaunch, d_colourGrid, scene);
+			cudaMalloc((void**) &d_thisLaunch, sizeof(launchParams_t));
+			cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*thisLaunch->squareSizeX*thisLaunch->squareSizeY);
 
-		cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*thisLaunch->squareSizeX*thisLaunch->squareSizeY, cudaMemcpyDeviceToHost);
+			cudaMemcpy(d_thisLaunch, thisLaunch, sizeof(launchParams_t), cudaMemcpyHostToDevice);
+
+			cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_thisLaunch, d_colourGrid, scene);
+
+			cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*thisLaunch->squareSizeX*thisLaunch->squareSizeY, cudaMemcpyDeviceToHost);
 
 
-		cudaFree(d_thisLaunch);
-		cudaFree(d_colourGrid);
-	}else{
-		cpuShootRays(col, scene, NUM_OF_BLOCKS*THREADS_PER_BLOCK, thisLaunch);
+			cudaFree(d_thisLaunch);
+			cudaFree(d_colourGrid);
+		}else{
+			cpuShootRays(col, scene, NUM_OF_BLOCKS*THREADS_PER_BLOCK, thisLaunch);
+		}
+		colDeck[i] = col;
 	}
 
+	colour_t* finalColour = (colour_t*)calloc(numberOfPixels, sizeof(colour_t));
+
+	for(int i=0; i<numberOfPixels; i++){
+		for(int j=0; j<samplesToRender; j++){
+			finalColour[i].r += colDeck[j][i].r/samplesToRender;
+			finalColour[i].g += colDeck[j][i].g/samplesToRender;
+			finalColour[i].b += colDeck[j][i].b/samplesToRender;
+		}
+	}
 
 	for(int i=thisLaunch->x*thisLaunch->squareSizeX;i<(thisLaunch->x+1)*thisLaunch->squareSizeX;i++){
 		for(int j=thisLaunch->y*thisLaunch->squareSizeY;j<(thisLaunch->y+1)*thisLaunch->squareSizeY;j++){
 			int index = (j-thisLaunch->y*thisLaunch->squareSizeY)*thisLaunch->squareSizeX+(i-thisLaunch->x*thisLaunch->squareSizeX);
 
-			if(col[index].r<=255 && col[index].g<=255 && col[index].b<=255){
-				SDL_SetRenderDrawColor(renderer, (int)col[index].r, (int)col[index].g, (int)col[index].b, 255);
+			if(finalColour[index].r<=255 && finalColour[index].g<=255 && finalColour[index].b<=255){
+				SDL_SetRenderDrawColor(renderer, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b, 255);
 			}else{
 				//handle overspill colours
-				processColourOverspill(renderer, col[index]);
+				processColourOverspill(renderer, finalColour[index]);
 			}
 			SDL_RenderDrawPoint(renderer, i, j);
 		}
 	}
 
-	free(col);
+	for(int i=0; i<samplesToRender; i++){
+		free(colDeck[i]);
+	}
+	free(colDeck);
+	free(finalColour);
 }
 
-int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i)
+int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i, int MSAA_LEVEL_i)
 {
 	std::clock_t start;
 	start = std::clock();
 
 	///
-
+	MSAA_LEVEL = MSAA_LEVEL_i;
 	USE_CUDA = USE_GPU_i;
 	FILENAME = FILENAME_i;
 	SCREEN_HEIGHT = SCREEN_HEIGHT_i;
@@ -352,6 +379,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	launchParams_t* thisLaunch = (launchParams_t*)malloc(sizeof(launchParams_t));
 	thisLaunch->SCREEN_X = SCREEN_WIDTH;
 	thisLaunch->SCREEN_Y = SCREEN_HEIGHT;
+	thisLaunch->MSAA_SAMPLES = MSAA_LEVEL+1;
 	for(int t=0; t<MAX_ANIMATION_ITERATIONS; t++){
 		if(USE_CUDA){
 			scene = d_initScene(tData, t);

@@ -45,9 +45,11 @@ the recursion will be arbitarily deep, will find an iterative alternative
 89 - added interface for rendering
 92 - added bmp file output
 94 - initiate multisampling antialiasing development
+95 - refactoring for msaa and bvh development
+96 - MultiSampling AntiAliasing (MSAA) implemented
 
 Features:
-CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris, Textures
+CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing
 
 Upcoming Features:
-Ambient Occlusion Pass, Object Input Parser
+Ambient Occlusion Pass

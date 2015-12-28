@@ -13,5 +13,6 @@ public:
 	__host__ __device__ Camera(void);
 	__host__ __device__ ~Camera(void);
 	__host__ __device__ vector_t getThisLocationDirection(int i, int j, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+	__host__ __device__ vector_t getThisLocationDirection(int i, int j, int SCREEN_WIDTH, int SCREEN_HEIGHT, int MSAA_SAMPLES, int MSAA_INDEX);
 };
 
