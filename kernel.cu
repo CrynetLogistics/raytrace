@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <ctime>
 #include "SDL.h"
 #include "SDL_image.h"
 #include "stdio.h"
@@ -234,15 +235,22 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	return scene;
 }
 
-__global__ void cudaShootRays(vector_t* lightRay, colour_t* colGrid, Scene* d_scene){
+__global__ void cudaShootRays(launchParams_t* thisLaunch, colour_t* colGrid, Scene* d_scene){
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
-	Ray ray(lightRay[index], d_scene, MAX_ITERATIONS);
+	int xPosi = index%thisLaunch->squareSizeX + thisLaunch->x*thisLaunch->squareSizeX;
+	int yPosj = index/thisLaunch->squareSizeX + thisLaunch->y*thisLaunch->squareSizeY;
+	vector_t init_vector 
+		= d_scene->getCamera().getThisLocationDirection(xPosi, yPosj, thisLaunch->SCREEN_X, thisLaunch->SCREEN_Y);
+	Ray ray(init_vector, d_scene, MAX_ITERATIONS);
 	colGrid[index] = ray.raytrace();
 }
 
-void cpuShootRays(vector_t* lightRay, colour_t* colGrid, Scene* h_scene, int numOfRays){
+void cpuShootRays(colour_t* colGrid, Scene* h_scene, int numOfRays, launchParams_t* thisLaunch){
 	for(int i=0;i<numOfRays;i++){
-		Ray ray(lightRay[i], h_scene, MAX_ITERATIONS);
+		int xPosi = i%thisLaunch->squareSizeX + thisLaunch->x*thisLaunch->squareSizeX;
+		int yPosj = i/thisLaunch->squareSizeX + thisLaunch->y*thisLaunch->squareSizeY;
+		vector_t init_vector = h_scene->getCamera().getThisLocationDirection(xPosi, yPosj, SCREEN_WIDTH,SCREEN_HEIGHT);
+		Ray ray(init_vector, h_scene, MAX_ITERATIONS);
 		colGrid[i] = ray.raytrace();
 	}
 }
@@ -257,61 +265,35 @@ void h_destroyScene(Scene* h_scene){
 }
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
-void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSizeX, int squareSizeY, Scene* scene){
-
-	//vector_t locDir = scene->getCamera().getLocDir();
-	vector_t locDir(0,0,0,0,3,0);
-	//float ZOOM_FACTOR = scene->getCamera().getGridSize();
-	float ZOOM_FACTOR = 0.01f;
-
+void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scene* scene){
 	
-	vector_t* thisLocDir = (vector_t*)malloc(squareSizeX*squareSizeY*sizeof(vector_t));
-	colour_t* col = (colour_t*)malloc(squareSizeX*squareSizeY*sizeof(colour_t));
-
-	for(int i=x*squareSizeX;i<(x+1)*squareSizeX;i++){
-		for(int j=y*squareSizeY;j<(y+1)*squareSizeY;j++){
-			int index = (j-y*squareSizeY)*squareSizeX+(i-x*squareSizeX);
-			//TODO: GENERALISE THIS FORMULA
-			//CURRENTLY: ONLY APPLIES TO CAMERA POINTING ALONG Y DIRECTION
-			thisLocDir[index] = vector_t();
-			thisLocDir[index].x0 = locDir.x0;
-			thisLocDir[index].y0 = locDir.y0;
-			thisLocDir[index].z0 = locDir.z0;
-
-			thisLocDir[index].xt = locDir.xt + (float)(i-SCREEN_WIDTH/2)*ZOOM_FACTOR;
-			thisLocDir[index].yt = locDir.yt;
-			thisLocDir[index].zt = locDir.zt + (float)(SCREEN_HEIGHT/2-j)*ZOOM_FACTOR;
-		}
-	}
-
-
+	colour_t* col = (colour_t*)malloc(thisLaunch->squareSizeX*thisLaunch->squareSizeY*sizeof(colour_t));
 
 	if(USE_CUDA){
-
-		vector_t* d_lightRay;
 		colour_t* d_colourGrid;
+		launchParams_t* d_thisLaunch;
 
-		cudaMalloc((void**) &d_lightRay, sizeof(vector_t)*squareSizeX*squareSizeY);
-		cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*squareSizeX*squareSizeY);
+		cudaMalloc((void**) &d_thisLaunch, sizeof(launchParams_t));
+		cudaMalloc((void**) &d_colourGrid, sizeof(colour_t)*thisLaunch->squareSizeX*thisLaunch->squareSizeY);
 
-		cudaMemcpy(d_lightRay, thisLocDir, sizeof(vector_t)*squareSizeX*squareSizeY, cudaMemcpyHostToDevice);
+		cudaMemcpy(d_thisLaunch, thisLaunch, sizeof(launchParams_t), cudaMemcpyHostToDevice);
 
 		
-		cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_lightRay, d_colourGrid, scene);
+		cudaShootRays<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(d_thisLaunch, d_colourGrid, scene);
 
-		cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*squareSizeX*squareSizeY, cudaMemcpyDeviceToHost);
+		cudaMemcpy(col, d_colourGrid, sizeof(colour_t)*thisLaunch->squareSizeX*thisLaunch->squareSizeY, cudaMemcpyDeviceToHost);
 
 
-		cudaFree(d_lightRay);
+		cudaFree(d_thisLaunch);
 		cudaFree(d_colourGrid);
 	}else{
-		cpuShootRays(thisLocDir, col, scene, NUM_OF_BLOCKS*THREADS_PER_BLOCK);
+		cpuShootRays(col, scene, NUM_OF_BLOCKS*THREADS_PER_BLOCK, thisLaunch);
 	}
 
 
-	for(int i=x*squareSizeX;i<(x+1)*squareSizeX;i++){
-		for(int j=y*squareSizeY;j<(y+1)*squareSizeY;j++){
-			int index = (j-y*squareSizeY)*squareSizeX+(i-x*squareSizeX);
+	for(int i=thisLaunch->x*thisLaunch->squareSizeX;i<(thisLaunch->x+1)*thisLaunch->squareSizeX;i++){
+		for(int j=thisLaunch->y*thisLaunch->squareSizeY;j<(thisLaunch->y+1)*thisLaunch->squareSizeY;j++){
+			int index = (j-thisLaunch->y*thisLaunch->squareSizeY)*thisLaunch->squareSizeX+(i-thisLaunch->x*thisLaunch->squareSizeX);
 
 			if(col[index].r<=255 && col[index].g<=255 && col[index].b<=255){
 				SDL_SetRenderDrawColor(renderer, (int)col[index].r, (int)col[index].g, (int)col[index].b, 255);
@@ -323,12 +305,16 @@ void drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSizeX, i
 		}
 	}
 
-	free(thisLocDir);
 	free(col);
 }
 
 int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i)
 {
+	std::clock_t start;
+	start = std::clock();
+
+	///
+
 	USE_CUDA = USE_GPU_i;
 	FILENAME = FILENAME_i;
 	SCREEN_HEIGHT = SCREEN_HEIGHT_i;
@@ -362,6 +348,10 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	}
 	//END OF TEXTURE LOAD
 	Scene* scene;
+
+	launchParams_t* thisLaunch = (launchParams_t*)malloc(sizeof(launchParams_t));
+	thisLaunch->SCREEN_X = SCREEN_WIDTH;
+	thisLaunch->SCREEN_Y = SCREEN_HEIGHT;
 	for(int t=0; t<MAX_ANIMATION_ITERATIONS; t++){
 		if(USE_CUDA){
 			scene = d_initScene(tData, t);
@@ -369,16 +359,26 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 			scene = h_initScene(tData, t);
 		}
 
+				
 		if(USE_BLOCK_BY_BLOCKING_RENDERING){
 			for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
 				for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
 					//CALL OUR DRAW LOOP FUNCTION
-					drawPixelRaytracer(renderer, i, j, RENDER_SQUARE_SIZE, RENDER_SQUARE_SIZE, scene);
+					thisLaunch->squareSizeX = RENDER_SQUARE_SIZE;
+					thisLaunch->squareSizeY = RENDER_SQUARE_SIZE;
+					thisLaunch->x = i;
+					thisLaunch->y = j;
+					
+					drawPixelRaytracer(renderer, thisLaunch, scene);
 					SDL_RenderPresent(renderer);
 				}
 			}
 		}else{
-			drawPixelRaytracer(renderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, scene);
+			thisLaunch->squareSizeX = SCREEN_WIDTH;
+			thisLaunch->squareSizeY = SCREEN_HEIGHT;
+			thisLaunch->x = 0;
+			thisLaunch->y = 0;
+			drawPixelRaytracer(renderer, thisLaunch, scene);
 			SDL_RenderPresent(renderer);
 		}
 	}
@@ -386,7 +386,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	
 
 
-	printf("done");
+	double timeDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+
+	printf("done in %.3fs",timeDuration);
 	if(USE_CUDA){
 		d_destroyScene(scene, tData);
 	}else{
@@ -394,6 +396,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	}
 	IMG_Quit();
 	free(tData);
+	free(thisLaunch);
 	SDL_Delay(DISPLAY_TIME);
 	//Destroy window
     SDL_DestroyWindow(window);

@@ -23,3 +23,12 @@ typedef struct colour{
 	float g;
 	float b;
 } colour_t;
+
+typedef struct launchParams{
+	int x;
+	int y;
+	int squareSizeX;
+	int squareSizeY;
+	int SCREEN_X;
+	int SCREEN_Y;
+} launchParams_t;

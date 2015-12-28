@@ -59,6 +59,9 @@ scenePrototype_t parseFile(string filename) {
 		free(s);
 	}else{
 		cerr<<"ERROR: FILE CANNOT BE OPENED"<<endl;
+		int dummy;
+		cin>>dummy;
+		exit(0);
 	}
 	//VERTS SHOULD BE FREED AT THE END OF THE PROGRAM free(verts);
 

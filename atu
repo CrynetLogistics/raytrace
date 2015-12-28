@@ -1,0 +1,51 @@
+[1mdiff --git a/kernel.cu b/kernel.cu[m
+[1mindex 7202636..a596e21 100644[m
+[1m--- a/kernel.cu[m
+[1m+++ b/kernel.cu[m
+[36m@@ -1,5 +1,6 @@[m
+ #include <iostream>[m
+ #include <string>[m
+[32m+[m[32m#include <ctime>[m
+ #include "SDL.h"[m
+ #include "SDL_image.h"[m
+ #include "stdio.h"[m
+[36m@@ -329,6 +330,9 @@[m [mvoid drawPixelRaytracer(SDL_Renderer *renderer, int x, int y, int squareSizeX, i[m
+ [m
+ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i)[m
+ {[m
+[32m+[m	[32mstd::clock_t start;[m
+[32m+[m	[32mstart = std::clock();[m
+[32m+[m
+ 	USE_CUDA = USE_GPU_i;[m
+ 	FILENAME = FILENAME_i;[m
+ 	SCREEN_HEIGHT = SCREEN_HEIGHT_i;[m
+[36m@@ -385,8 +389,9 @@[m [mint raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string[m
+ 	saveScreenshotBMP("world.bmp", window, renderer);[m
+ 	[m
+ [m
+[32m+[m	[32mdouble timeDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;[m
+ [m
+[31m-	printf("done");[m
+[32m+[m	[32mprintf("done in %.3fs",timeDuration);[m
+ 	if(USE_CUDA){[m
+ 		d_destroyScene(scene, tData);[m
+ 	}else{[m
+[1mdiff --git a/log.txt b/log.txt[m
+[1mindex c848cde..3fc8f3c 100644[m
+[1m--- a/log.txt[m
+[1m+++ b/log.txt[m
+[36m@@ -40,6 +40,11 @@[m [mthe recursion will be arbitarily deep, will find an iterative alternative[m
+ 75 - full implementation of horizon lighting including solid colours[m
+ 77 - enabled CPU rendering, test scene - (CPU:4.55s,GPU:2.48s)[m
+ 78 - fixed pink colour overspills[m
+[32m+[m[32m84 - added parser for verts, tris[m
+[32m+[m[32m87 - parser fully working[m
+[32m+[m[32m89 - added interface for rendering[m
+[32m+[m[32m92 - added bmp file output[m
+[32m+[m[32m94 - initiate multisampling antialiasing development[m
+ [m
+ Features:[m
+ CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris, Textures[m
+[1mdiff --git a/world.bmp b/world.bmp[m
+[1mindex 1c8d4fa..1d4dca8 100644[m
+Binary files a/world.bmp and b/world.bmp differ
