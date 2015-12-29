@@ -3,3 +3,4 @@ Debug/
 Release/
 *.vcxproj.user
 *.dll
+*.cd

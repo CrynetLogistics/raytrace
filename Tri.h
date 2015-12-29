@@ -23,5 +23,7 @@ public:
 	__host__ __device__ float getShadowedStatus(vector_t lightRay, float t, Light light) override;
 	__host__ __device__ vector_t getNormal(vertex_t pos, vector_t incoming) override;
 	__host__ __device__ Material getMaterial(void) override;
+	__host__ __device__ int isContainedWithin(vertex_t extremum1, vertex_t extremum2) override;
+	__host__ __device__ extremum_t findExtremum(void) override;
 };
 

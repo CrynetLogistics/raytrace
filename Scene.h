@@ -6,6 +6,7 @@
 #include "Tri.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "BinTree/BinTree.cuh"
 
 class Scene
 {
@@ -17,6 +18,7 @@ private:
 	int totalMeshes;
 	uint32_t* textureData;
 	colour_t horizonColour;
+	BinTree* partitioningHierachy;
 public:
 	__host__ __device__ Scene(int totalMeshes, uint32_t* textureData);
 	__host__ __device__ Camera getCamera(void);
@@ -31,6 +33,8 @@ public:
 	__host__ __device__ void addLight(float posX, float posY, float posZ, float intensity);
 	__host__ __device__ int getNumOfMeshes(void);
 	__host__ __device__ uint32_t* getTexture(void);
+	__host__ __device__ Mesh** getMeshes(void);
+	__host__ __device__ void buildBSPBVH(void);
 	__host__ __device__ ~Scene(void);
 };
 

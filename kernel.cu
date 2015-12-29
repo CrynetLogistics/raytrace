@@ -100,7 +100,7 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	d_scene->setHorizonColour(black);
 	d_scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
-	d_scene->addTri(v3,v4,v5,bright_green,SHINY);
+	d_scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
 	//scene->addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
 	//scene->addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
@@ -212,7 +212,7 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	scene->addLight(-1,8,6,10);
 	scene->setHorizonColour(black);
 	scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
-	scene->addTri(v3,v4,v5,bright_green,SHINY);
+	scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	scene->addSphere(2,10,5,2.5,dark_red,SHINY);
 	scene->addSphere(6,9,3,t,cold_blue,DIFFUSE);
 	scene->addSphere(6,7,-1,2,cold_blue,SHINY);
@@ -232,6 +232,8 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	}
 
 	//auto parser
+
+	
 
 	return scene;
 }

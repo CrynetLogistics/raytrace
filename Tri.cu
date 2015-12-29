@@ -80,5 +80,44 @@ __host__ __device__ Material Tri::getMaterial(void){
 	return material;
 }
 
+__host__ __device__ int Tri::isContainedWithin(vertex_t extremum1, vertex_t extremum2){
+	bool v1c = false;
+	bool v2c = false;
+	bool v3c = false;
+
+	if((extremum1.x<v1.x && v1.x<extremum2.x) || (extremum1.x>v1.x && v1.x>extremum2.x) &&
+		(extremum1.y<v1.y && v1.y<extremum2.y) || (extremum1.y>v1.y && v1.y>extremum2.y) &&
+		(extremum1.z<v1.z && v1.z<extremum2.z) || (extremum1.z>v1.z && v1.z>extremum2.z)){
+		v1c = true;
+	}
+
+	if((extremum1.x<v2.x && v2.x<extremum2.x) || (extremum1.x>v2.x && v2.x>extremum2.x) &&
+		(extremum1.y<v2.y && v2.y<extremum2.y) || (extremum1.y>v2.y && v2.y>extremum2.y) &&
+		(extremum1.z<v2.z && v2.z<extremum2.z) || (extremum1.z>v2.z && v2.z>extremum2.z)){
+		v2c = true;
+	}
+
+	if((extremum1.x<v3.x && v3.x<extremum2.x) || (extremum1.x>v3.x && v3.x>extremum2.x) &&
+		(extremum1.y<v3.y && v3.y<extremum2.y) || (extremum1.y>v3.y && v3.y>extremum2.y) &&
+		(extremum1.z<v3.z && v3.z<extremum2.z) || (extremum1.z>v3.z && v3.z>extremum2.z)){
+		v3c = true;
+	}
+
+	if(v1c&&v2c&&v3c){
+		return 2;
+	}else if(v1c||v2c||v3c){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+__host__ __device__ extremum_t Tri::findExtremum(void){
+	extremum_t e(v1,v2);
+	e.factorInExtremum(v3);
+
+	return e;
+}
+
 __host__ __device__ Tri::~Tri(void){
 }

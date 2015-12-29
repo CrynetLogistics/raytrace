@@ -144,8 +144,20 @@ __host__ __device__ colour_t Plane::getColour(vertex_t position){
 	}
 }
 
+__host__ __device__ int Plane::isContainedWithin(vertex_t extremum1, vertex_t extremum2){
+	return 2;
+}
+
 __host__ __device__ Material Plane::getMaterial(void){
 	return material;
+}
+
+__host__ __device__ extremum_t Plane::findExtremum(void){
+	extremum_t e(v1, v2);
+	e.factorInExtremum(v3);
+	e.factorInExtremum(v4);
+
+	return e;
 }
 
 __host__ __device__ Plane::~Plane(void){

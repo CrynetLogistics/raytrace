@@ -111,5 +111,38 @@ __host__ __device__ Material Sphere::getMaterial(void){
 	return material;
 }
 
+__host__ __device__ int Sphere::isContainedWithin(vertex_t extremum1, vertex_t extremum2){
+	bool x1 = abs(extremum1.x-centre.x) > radius;
+	bool x2 = abs(extremum2.x-centre.x) > radius;
+
+	bool y1 = abs(extremum1.y-centre.y) > radius;
+	bool y2 = abs(extremum2.y-centre.y) > radius;
+
+	bool z1 = abs(extremum1.z-centre.z) > radius;
+	bool z2 = abs(extremum2.z-centre.z) > radius;
+
+	if(x1&&x2&&y1&&y2&&z1&&z2){
+		return 2; //fully contained in volume
+	}else if(x1||x2||y1||y2||z1||z2){
+		return 1; //partially contained in volume
+	}else{
+		return 0; //not contained in volume
+	}
+}
+
+__host__ __device__ extremum_t Sphere::findExtremum(void){
+	vertex_t e1;
+	e1.x = centre.x + radius;
+	e1.y = centre.y + radius;
+	e1.z = centre.z + radius;
+
+	vertex_t e2;
+	e2.x = centre.x - radius;
+	e2.y = centre.y - radius;
+	e2.z = centre.z - radius;
+
+	return extremum_t(e1, e2);
+}
+
 __host__ __device__ Sphere::~Sphere(void){
 }

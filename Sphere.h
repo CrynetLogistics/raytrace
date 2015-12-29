@@ -19,6 +19,8 @@ public:
 	__host__ __device__ Sphere(float centreX, float centreY, float centreZ, float radius, colour_t colour, uint32_t* textureData);
 	__host__ __device__ colour_t getColour(vertex_t position) override;
 	__host__ __device__ Material getMaterial(void) override;
+	__host__ __device__ int isContainedWithin(vertex_t extremum1, vertex_t extremum2) override;
+	__host__ __device__ extremum_t findExtremum(void) override;
 	__host__ __device__ ~Sphere(void);
 };
 

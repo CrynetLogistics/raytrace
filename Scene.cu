@@ -86,6 +86,16 @@ __host__ __device__ colour_t Scene::getHorizonColour(void){
 	return horizonColour;
 }
 
+__host__ __device__ Mesh** Scene::getMeshes(void){
+	return meshes;
+}
+
+//builds the binary space partioning bounding volume hierachy
+__host__ __device__ void Scene::buildBSPBVH(void){
+	partitioningHierachy = new BinTree(this);
+	partitioningHierachy->buildTree();
+}
+
 __host__ __device__ Scene::~Scene(void){
 	for(int i=0;i<numOfMeshes;i++){
 		free(meshes[i]);
