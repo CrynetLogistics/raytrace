@@ -9,6 +9,7 @@ typedef struct vertex{
 	float z;
 } vertex_t;
 
+//obsolete - use vector_t class instead
 //typedef struct vector{
 //	float x0;
 //	float y0;
