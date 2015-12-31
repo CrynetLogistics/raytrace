@@ -47,9 +47,11 @@ the recursion will be arbitarily deep, will find an iterative alternative
 94 - initiate multisampling antialiasing development
 95 - refactoring for msaa and bvh development
 96 - MultiSampling AntiAliasing (MSAA) implemented
+104 - implemented Binary Spatial Partitioning (BSP) Bounded Volume Hierachy (BVH) for CPUs
+105 - another default scene with toruses
 
 Features:
 CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing
 
 Upcoming Features:
-Ambient Occlusion Pass
+Ambient Occlusion Pass, BSP-BVH for GPUs

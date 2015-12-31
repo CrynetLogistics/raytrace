@@ -75,17 +75,7 @@ __host__ __device__ void BinTreeNode::propagateTree(int maxTreeHeight){
 			meshes[i] = meshes[numOfMeshes-1];
 			numOfMeshes--;
 		}else{
-			/*if(leftContainmentIndex==0 && rightContainmentIndex==0){
-				free(leftMeshes);
-				free(rightMeshes);
-				hasChildren = false;
-				return;
-			}else{
-				leftMeshes[leftBoxMeshCount] = meshes[i];
-				leftBoxMeshCount++;
-				rightMeshes[rightBoxMeshCount] = meshes[i];
-				rightBoxMeshCount++;
-			}*/
+			//leave the mesh in the parent and dont touch the children
 		}
 	}
 

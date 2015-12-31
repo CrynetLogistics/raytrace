@@ -94,7 +94,7 @@ __host__ __device__ Mesh** Scene::getMeshes(void){
 __host__ __device__ void Scene::buildBSPBVH(void){
 	//DEFINE MAX TREE HEIGHT AS 4
 	partitioningHierachy = new BinTree(meshes, numOfMeshes);
-	partitioningHierachy->buildTree(4);
+	partitioningHierachy->buildTree(8);
 }
 
 __host__ __device__ float Scene::collisionDetect(vector_t ray, Mesh** mesh){

@@ -32,4 +32,3 @@ public:
 	__host__ __device__ float collisionDetect(vector_t ray, Mesh** mesh);
 	__host__ __device__ ~Scene(void);
 };
-

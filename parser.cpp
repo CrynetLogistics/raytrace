@@ -24,7 +24,7 @@ scenePrototype_t parseFile(string filename) {
 
 		while(!inputFile.eof()){
 			char i = inputFile.peek();
-			if(i=='#'||i=='s'){
+			if(i=='#'||i=='s'||i=='o'){
 				inputFile.getline(s, 512);
 			}else if(i=='v'){
 				numberOfVerticies++;
@@ -40,6 +40,7 @@ scenePrototype_t parseFile(string filename) {
 				inputFile>>ws;
 			}else{
 				cerr<<"I DONT KNOW WHAT I HAVE ENCOUNTERED"<<endl;
+				inputFile.getline(s, 512);
 			}
 		}
 
