@@ -36,7 +36,7 @@ int USE_CUDA = 0;
 int SCREEN_WIDTH = 1280;
 int SCREEN_HEIGHT = 720;
 int MSAA_LEVEL = 0;
-bool USE_BSPBVH = false;
+int BSPBVH_DEPTH = 0;
 
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
@@ -118,7 +118,7 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 		d_scene->addTri(d_verts[d_tris[i].v1-1], d_verts[d_tris[i].v2-1], d_verts[d_tris[i].v3-1], cold_blue, DIFFUSE);
 	}
 	//THIS FLAG HERE CREATES RESOURCES LEAK EITHER DUE TO MALLOC MISUSE OR WRONG THREADS OR BLOCKS FOR DIFFICULT TASK - THREAD TIMEOUT
-	//d_scene->buildBSPBVH(); -------- NEEDS CONDITIONAL GUARDS HERE FOR USE_BSPBVH
+	//d_scene->buildBSPBVH(BSPBVH_DEPTH); -------- NEEDS CONDITIONAL GUARDS HERE FOR BSPBVH_DEPTH
 	//auto parser
 }
 
@@ -240,8 +240,8 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
-	if(USE_BSPBVH){
-		scene->buildBSPBVH();
+	if(BSPBVH_DEPTH!=0){
+		scene->buildBSPBVH(BSPBVH_DEPTH);
 	}
 
 	return scene;
@@ -255,7 +255,7 @@ __global__ void cudaShootRays(launchParams_t* thisLaunch, colour_t* colGrid, Sce
 	vector_t init_vector = d_scene->getCamera().getThisLocationDirection(
 		xPosi, yPosj, thisLaunch->SCREEN_X, thisLaunch->SCREEN_Y, thisLaunch->MSAA_SAMPLES, thisLaunch->MSAA_INDEX);
 
-	Ray ray(init_vector, d_scene, MAX_ITERATIONS, thisLaunch->USE_BSPBVH);
+	Ray ray(init_vector, d_scene, MAX_ITERATIONS, thisLaunch->BSPBVH_DEPTH);
 	colGrid[index] = ray.raytrace();
 }
 
@@ -267,7 +267,7 @@ void cpuShootRays(colour_t* colGrid, Scene* h_scene, int numOfRays, launchParams
 		vector_t init_vector = h_scene->getCamera().getThisLocationDirection(
 			xPosi, yPosj, SCREEN_WIDTH, SCREEN_HEIGHT, thisLaunch->MSAA_SAMPLES, thisLaunch->MSAA_INDEX);
 
-		Ray ray(init_vector, h_scene, MAX_ITERATIONS, thisLaunch->USE_BSPBVH);
+		Ray ray(init_vector, h_scene, MAX_ITERATIONS, thisLaunch->BSPBVH_DEPTH);
 		colGrid[i] = ray.raytrace();
 	}
 }
@@ -346,7 +346,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scen
 	free(finalColour);
 }
 
-int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i, int MSAA_LEVEL_i, bool USE_BSPBVH_i)
+int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i, int MSAA_LEVEL_i, int BSPBVH_DEPTH_i)
 {
 	std::clock_t start;
 	start = std::clock();
@@ -357,7 +357,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	FILENAME = FILENAME_i;
 	SCREEN_HEIGHT = SCREEN_HEIGHT_i;
 	SCREEN_WIDTH = SCREEN_WIDTH_i;
-	USE_BSPBVH = USE_BSPBVH_i;
+	BSPBVH_DEPTH = BSPBVH_DEPTH_i;
 
     SDL_Window* window = NULL;
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -392,7 +392,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	thisLaunch->SCREEN_X = SCREEN_WIDTH;
 	thisLaunch->SCREEN_Y = SCREEN_HEIGHT;
 	thisLaunch->MSAA_SAMPLES = MSAA_LEVEL+1;
-	thisLaunch->USE_BSPBVH = USE_BSPBVH_i;
+	thisLaunch->BSPBVH_DEPTH = BSPBVH_DEPTH_i;
 	for(int t=0; t<MAX_ANIMATION_ITERATIONS; t++){
 		if(USE_CUDA){
 			scene = d_initScene(tData, t);
@@ -438,7 +438,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	IMG_Quit();
 	free(tData);
 	free(thisLaunch);
-	SDL_Delay(DISPLAY_TIME);
+	while(true){
+		SDL_Delay(DISPLAY_TIME);
+	}
 	//Destroy window
     SDL_DestroyWindow(window);
     //Quit SDL subsystems

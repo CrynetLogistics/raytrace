@@ -26,8 +26,8 @@ NOTE: Even if DIRECT is given to a ray, it can still encounter other objects
 that might obstruct its path in future - in this case, it will be given a 
 BACKSCATTER when that occurs
 */
-__host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES, bool USE_BSPBVH){
-	this->USE_BSPBVH = USE_BSPBVH;
+__host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES, int BSPBVH_DEPTH){
+	this->BSPBVH_DEPTH = BSPBVH_DEPTH;
 	ray = initial;
 	this->scene = scene;
 	this->MAX_BOUNCES = MAX_BOUNCES;
@@ -89,7 +89,7 @@ __host__ __device__ void Ray::nextRayBounce(void){
 	Mesh* intersectedMesh;
 	float tMin;
 
-	if(USE_BSPBVH){
+	if(BSPBVH_DEPTH!=0){
 		tMin = scene->collisionDetect(ray, &intersectedMesh);
 	}else{
 		tMin = CLIPPING_DISTANCE;

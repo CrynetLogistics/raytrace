@@ -1,6 +1,6 @@
 #include "BinTreeNode.cuh"
 
-#define REPETITION_INDEX_SENSITIVITY 3
+#define REPETITION_INDEX_SENSITIVITY 20
 #define SMALLEST_MESH_NO_IN_BOUNDING_BOX 3
 
 __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes){
@@ -19,7 +19,7 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes){
 
 	vertex_t lowE = extremum.getLowExtremum();
 	vertex_t highE = extremum.getHighExtremum();
-	printf("Box, %i meshes, l[%f,%f,%f], h[%f,%f,%f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
+	printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
 	repetitionIndex = 0;
 }
 
@@ -36,7 +36,7 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, ext
 
 	vertex_t lowE = extremum.getLowExtremum();
 	vertex_t highE = extremum.getHighExtremum();
-	printf("Box, %i meshes, l[%f,%f,%f], h[%f,%f,%f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
+	printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
 }
 
 //The treeNode stops having leaves if it contains less than 3 meshes
@@ -59,7 +59,7 @@ __host__ __device__ void BinTreeNode::propagateTree(int maxTreeHeight){
 	extremum_t leftBox = extremum.getPartitionedLowExtremum();
 	extremum_t rightBox = extremum.getPartitionedHighExtremum();
 
-	for(int i=0; i<numOfMeshes; i++){
+	for(int i=0; i<INITIAL_MESHES; i++){
 		int leftContainmentIndex = meshes[i]->isContainedWithin(leftBox);
 		int rightContainmentIndex = meshes[i]->isContainedWithin(rightBox);
 		if(leftContainmentIndex==2){

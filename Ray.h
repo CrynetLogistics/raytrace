@@ -32,11 +32,11 @@ private:
 	secondaryRay_t* secondary;
 	int secondaryDepth;
 
-	bool USE_BSPBVH;
+	int BSPBVH_DEPTH;
 
 	__host__ __device__ void nextRayBounce(void);
 public:
-	__host__ __device__ Ray(vector_t initial, Scene *scene, int MAX_BOUNCES, bool USE_BSPBVH);
+	__host__ __device__ Ray(vector_t initial, Scene *scene, int MAX_BOUNCES, int BSPBVH_DEPTH);
 	__host__ __device__ colour_t raytrace(void);
 	__host__ __device__ ~Ray(void);
 };

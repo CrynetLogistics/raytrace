@@ -91,21 +91,21 @@ __host__ __device__ int Tri::isContainedWithin(extremum_t ex){
 	bool v2c = false;
 	bool v3c = false;
 
-	if((extremum1.x<v1.x && v1.x<extremum2.x) || (extremum1.x>v1.x && v1.x>extremum2.x) &&
-		(extremum1.y<v1.y && v1.y<extremum2.y) || (extremum1.y>v1.y && v1.y>extremum2.y) &&
-		(extremum1.z<v1.z && v1.z<extremum2.z) || (extremum1.z>v1.z && v1.z>extremum2.z)){
+	if(((extremum1.x<v1.x && v1.x<extremum2.x) || (extremum1.x>v1.x && v1.x>extremum2.x)) &&
+		((extremum1.y<v1.y && v1.y<extremum2.y) || (extremum1.y>v1.y && v1.y>extremum2.y)) &&
+		((extremum1.z<v1.z && v1.z<extremum2.z) || (extremum1.z>v1.z && v1.z>extremum2.z))){
 		v1c = true;
 	}
 
-	if((extremum1.x<v2.x && v2.x<extremum2.x) || (extremum1.x>v2.x && v2.x>extremum2.x) &&
-		(extremum1.y<v2.y && v2.y<extremum2.y) || (extremum1.y>v2.y && v2.y>extremum2.y) &&
-		(extremum1.z<v2.z && v2.z<extremum2.z) || (extremum1.z>v2.z && v2.z>extremum2.z)){
+	if(((extremum1.x<v2.x && v2.x<extremum2.x) || (extremum1.x>v2.x && v2.x>extremum2.x)) &&
+		((extremum1.y<v2.y && v2.y<extremum2.y) || (extremum1.y>v2.y && v2.y>extremum2.y)) &&
+		((extremum1.z<v2.z && v2.z<extremum2.z) || (extremum1.z>v2.z && v2.z>extremum2.z))){
 		v2c = true;
 	}
 
-	if((extremum1.x<v3.x && v3.x<extremum2.x) || (extremum1.x>v3.x && v3.x>extremum2.x) &&
-		(extremum1.y<v3.y && v3.y<extremum2.y) || (extremum1.y>v3.y && v3.y>extremum2.y) &&
-		(extremum1.z<v3.z && v3.z<extremum2.z) || (extremum1.z>v3.z && v3.z>extremum2.z)){
+	if(((extremum1.x<v3.x && v3.x<extremum2.x) || (extremum1.x>v3.x && v3.x>extremum2.x)) &&
+		((extremum1.y<v3.y && v3.y<extremum2.y) || (extremum1.y>v3.y && v3.y>extremum2.y)) &&
+		((extremum1.z<v3.z && v3.z<extremum2.z) || (extremum1.z>v3.z && v3.z>extremum2.z))){
 		v3c = true;
 	}
 

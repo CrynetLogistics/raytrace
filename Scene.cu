@@ -91,10 +91,10 @@ __host__ __device__ Mesh** Scene::getMeshes(void){
 }
 
 //builds the binary space partioning bounding volume hierachy
-__host__ __device__ void Scene::buildBSPBVH(void){
+__host__ __device__ void Scene::buildBSPBVH(int BSPBVH_DEPTH){
 	//DEFINE MAX TREE HEIGHT AS 4
 	partitioningHierachy = new BinTree(meshes, numOfMeshes);
-	partitioningHierachy->buildTree(8);
+	partitioningHierachy->buildTree(BSPBVH_DEPTH);
 }
 
 __host__ __device__ float Scene::collisionDetect(vector_t ray, Mesh** mesh){
