@@ -24,7 +24,7 @@ public:
 	//        result of the other box.
 	//        If a Mesh is partially in a parent and the nodes show that they have {partially, not}
 	//        then the 'not' node must not be further subdivided.
-	__host__ __device__ virtual int isContainedWithin(vertex_t extremum1, vertex_t extremum2) = 0;
+	__host__ __device__ virtual int isContainedWithin(extremum_t ex) = 0;
 
 	__host__ __device__ virtual extremum_t findExtremum(void) = 0;
 	__host__ __device__ ~Mesh(void);

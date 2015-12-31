@@ -80,7 +80,13 @@ __host__ __device__ Material Tri::getMaterial(void){
 	return material;
 }
 
-__host__ __device__ int Tri::isContainedWithin(vertex_t extremum1, vertex_t extremum2){
+__host__ __device__ int Tri::isContainedWithin(extremum_t ex){
+	//THERE EXISTS SOME REDUNDANT CHECKING HERE PLS REFACTOR
+	//THE CHANGE GUARENTEES THAT EACH LOW COORDINATE IS LOWER
+	//THAN EACH HIGHER COORDINATE
+	vertex_t extremum1 = ex.getLowExtremum();
+	vertex_t extremum2 = ex.getHighExtremum();
+
 	bool v1c = false;
 	bool v2c = false;
 	bool v3c = false;

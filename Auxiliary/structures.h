@@ -38,4 +38,5 @@ typedef struct launchParams{
 	//MSAA_INDEX is 0 indexed
 	int MSAA_INDEX;
 	int MSAA_SAMPLES;
+	bool USE_BSPBVH;
 } launchParams_t;

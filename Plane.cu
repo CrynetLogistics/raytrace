@@ -144,7 +144,7 @@ __host__ __device__ colour_t Plane::getColour(vertex_t position){
 	}
 }
 
-__host__ __device__ int Plane::isContainedWithin(vertex_t extremum1, vertex_t extremum2){
+__host__ __device__ int Plane::isContainedWithin(extremum_t ex){
 	return 2;
 }
 

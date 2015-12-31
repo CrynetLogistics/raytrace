@@ -26,7 +26,8 @@ NOTE: Even if DIRECT is given to a ray, it can still encounter other objects
 that might obstruct its path in future - in this case, it will be given a 
 BACKSCATTER when that occurs
 */
-__host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES){
+__host__ __device__ Ray::Ray(vector_t initial, Scene *scene, int MAX_BOUNCES, bool USE_BSPBVH){
+	this->USE_BSPBVH = USE_BSPBVH;
 	ray = initial;
 	this->scene = scene;
 	this->MAX_BOUNCES = MAX_BOUNCES;
@@ -85,25 +86,35 @@ __host__ __device__ colour_t Ray::raytrace(void){
 
 __host__ __device__ void Ray::nextRayBounce(void){
 	rayNumber++;
-	float tMin = CLIPPING_DISTANCE;
-	int iMin = 0;
+	Mesh* intersectedMesh;
+	float tMin;
 
-	for(int i=0;i<scene->getNumOfMeshes();i++){
+	if(USE_BSPBVH){
+		tMin = scene->collisionDetect(ray, &intersectedMesh);
+	}else{
+		tMin = CLIPPING_DISTANCE;
+		int iMin = 0;
 
-		float tCurrent = scene->getMesh(i)->getIntersectionParameter(ray);
+		for(int i=0; i<scene->getNumOfMeshes(); i++){
 
-		if(EPSILON<tCurrent && tCurrent<tMin && tCurrent!=0){
-			tMin = tCurrent;
-			iMin = i;
+			float tCurrent = scene->getMesh(i)->getIntersectionParameter(ray);
+
+			if(EPSILON<tCurrent && tCurrent<tMin && tCurrent!=0){
+				tMin = tCurrent;
+				iMin = i;
+			}
 		}
+		intersectedMesh = scene->getMesh(iMin);
 	}
 
 	colour_t intersectedMeshColour;
-	if(tMin!=CLIPPING_DISTANCE){ //NOT a clipping ray
+	if(abs(tMin-CLIPPING_DISTANCE)>EPSILON){ //NOT a clipping ray
 		//intersectedMeshColour.r = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin)).r;
 		//intersectedMeshColour.g = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin)).g;
 		//intersectedMeshColour.b = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin)).b;
-		intersectedMeshColour = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin));
+
+		//intersectedMeshColour = scene->getMesh(iMin)->getColour(ray.getPosAtParameter(tMin));
+		intersectedMeshColour = intersectedMesh->getColour(ray.getPosAtParameter(tMin));
 	}else{
 		if(USE_IMAGE_HORIZON){
 			vertex_t boundingSphereIntersection = ray.getPosAtParameter(CLIPPING_DISTANCE);
@@ -156,9 +167,9 @@ __host__ __device__ void Ray::nextRayBounce(void){
 	float distance = ray.calculateDistance(tMin);
 	totalDistance += distance;
 	
-	float currentMeshReflectivity = scene->getMesh(iMin)->getMaterial().getReflectivity();
-	bool isTransmission = scene->getMesh(iMin)->getMaterial().getTransmission();
-	float isShadowed = scene->getMesh(iMin)->getShadowedStatus(ray, tMin, scene->getLight());
+	float currentMeshReflectivity = intersectedMesh->getMaterial().getReflectivity();
+	bool isTransmission = intersectedMesh->getMaterial().getTransmission();
+	float isShadowed = intersectedMesh->getShadowedStatus(ray, tMin, scene->getLight());
 
 	if(rayType==BACKSCATTER){
 		pathColour.r += intersectedMeshColour.r*BRIGHTNESS*currentMeshReflectivity/(rayNumber*totalDistance);
@@ -184,7 +195,7 @@ __host__ __device__ void Ray::nextRayBounce(void){
 		//////////////////////////////FORCE LEAVE GLASS MATERIAL REVERSE SNELLS LAW
 		vertex_t pos = ray.getPosAtParameter(tMin);
 		vector_t transmissionRay;
-		vector_t normalRay = scene->getMesh(iMin)->getNormal(ray.getPosAtParameter(tMin), ray);
+		vector_t normalRay = intersectedMesh->getNormal(ray.getPosAtParameter(tMin), ray);
 		vector_t reverseIncidence(0,0,0,-ray.xt,-ray.yt,-ray.zt);
 		float cosINCIDENCE = normalRay.directionDotProduct(reverseIncidence);
 		float normalMagnitude = normalRay.directionMagnitude();
@@ -219,7 +230,7 @@ __host__ __device__ void Ray::nextRayBounce(void){
 
 
 
-	vector_t normalRay = scene->getMesh(iMin)->getNormal(ray.getPosAtParameter(tMin), ray);
+	vector_t normalRay = intersectedMesh->getNormal(ray.getPosAtParameter(tMin), ray);
 
 	vector_t directRay;
 	vertex_t pos = ray.getPosAtParameter(tMin);

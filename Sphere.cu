@@ -111,7 +111,10 @@ __host__ __device__ Material Sphere::getMaterial(void){
 	return material;
 }
 
-__host__ __device__ int Sphere::isContainedWithin(vertex_t extremum1, vertex_t extremum2){
+__host__ __device__ int Sphere::isContainedWithin(extremum_t ex){
+	vertex_t extremum1 = ex.getLowExtremum();
+	vertex_t extremum2 = ex.getHighExtremum();
+
 	bool x1 = abs(extremum1.x-centre.x) > radius;
 	bool x2 = abs(extremum2.x-centre.x) > radius;
 

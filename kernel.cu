@@ -36,6 +36,7 @@ int USE_CUDA = 0;
 int SCREEN_WIDTH = 1280;
 int SCREEN_HEIGHT = 720;
 int MSAA_LEVEL = 0;
+bool USE_BSPBVH = false;
 
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
@@ -116,7 +117,8 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	for(int i=0; i<*d_numOfTris; i++){
 		d_scene->addTri(d_verts[d_tris[i].v1-1], d_verts[d_tris[i].v2-1], d_verts[d_tris[i].v3-1], cold_blue, DIFFUSE);
 	}
-
+	//THIS FLAG HERE CREATES RESOURCES LEAK EITHER DUE TO MALLOC MISUSE OR WRONG THREADS OR BLOCKS FOR DIFFICULT TASK - THREAD TIMEOUT
+	//d_scene->buildBSPBVH(); -------- NEEDS CONDITIONAL GUARDS HERE FOR USE_BSPBVH
 	//auto parser
 }
 
@@ -208,17 +210,22 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	//autoparser
 	scenePrototype_t exterior = parseFile(FILENAME);
 
-	Scene *scene = new Scene(8 + exterior.numOfTris, h_texture);
+	Scene *scene = new Scene(4 + exterior.numOfTris, h_texture);
 	scene->addLight(-1,8,6,10);
 	scene->setHorizonColour(black);
-	scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
-	scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
-	scene->addSphere(2,10,5,2.5,dark_red,SHINY);
-	scene->addSphere(6,9,3,t,cold_blue,DIFFUSE);
-	scene->addSphere(6,7,-1,2,cold_blue,SHINY);
-	scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
-	scene->addSphere(-6,8,-2,2,soft_red,GLASS);
-	scene->addSphere(-9,8,3,3,bright_green,SHINY);
+	//scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
+	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
+	scene->addTri(v1,v2,v3,bright_green, SHINY);
+	scene->addTri(v2,v3,v4,bright_green, SHINY);
+	scene->addTri(v3,v4,v5,bright_green, SHINY);
+	scene->addTri(v4,v5,v6,bright_green, SHINY);
+
+	//scene->addSphere(2,10,5,2.5,dark_red,SHINY);
+	//scene->addSphere(6,9,3,t,cold_blue,DIFFUSE);
+	//scene->addSphere(6,7,-1,2,cold_blue,SHINY);
+	//scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
+	//scene->addSphere(-6,8,-2,2,soft_red,GLASS);
+	//scene->addSphere(-9,8,3,3,bright_green,SHINY);
 
 	//auto parser
 
@@ -233,7 +240,9 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
-	
+	if(USE_BSPBVH){
+		scene->buildBSPBVH();
+	}
 
 	return scene;
 }
@@ -246,7 +255,7 @@ __global__ void cudaShootRays(launchParams_t* thisLaunch, colour_t* colGrid, Sce
 	vector_t init_vector = d_scene->getCamera().getThisLocationDirection(
 		xPosi, yPosj, thisLaunch->SCREEN_X, thisLaunch->SCREEN_Y, thisLaunch->MSAA_SAMPLES, thisLaunch->MSAA_INDEX);
 
-	Ray ray(init_vector, d_scene, MAX_ITERATIONS);
+	Ray ray(init_vector, d_scene, MAX_ITERATIONS, thisLaunch->USE_BSPBVH);
 	colGrid[index] = ray.raytrace();
 }
 
@@ -258,7 +267,7 @@ void cpuShootRays(colour_t* colGrid, Scene* h_scene, int numOfRays, launchParams
 		vector_t init_vector = h_scene->getCamera().getThisLocationDirection(
 			xPosi, yPosj, SCREEN_WIDTH, SCREEN_HEIGHT, thisLaunch->MSAA_SAMPLES, thisLaunch->MSAA_INDEX);
 
-		Ray ray(init_vector, h_scene, MAX_ITERATIONS);
+		Ray ray(init_vector, h_scene, MAX_ITERATIONS, thisLaunch->USE_BSPBVH);
 		colGrid[i] = ray.raytrace();
 	}
 }
@@ -337,7 +346,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scen
 	free(finalColour);
 }
 
-int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i, int MSAA_LEVEL_i)
+int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i, int MSAA_LEVEL_i, bool USE_BSPBVH_i)
 {
 	std::clock_t start;
 	start = std::clock();
@@ -348,6 +357,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	FILENAME = FILENAME_i;
 	SCREEN_HEIGHT = SCREEN_HEIGHT_i;
 	SCREEN_WIDTH = SCREEN_WIDTH_i;
+	USE_BSPBVH = USE_BSPBVH_i;
 
     SDL_Window* window = NULL;
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -382,6 +392,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	thisLaunch->SCREEN_X = SCREEN_WIDTH;
 	thisLaunch->SCREEN_Y = SCREEN_HEIGHT;
 	thisLaunch->MSAA_SAMPLES = MSAA_LEVEL+1;
+	thisLaunch->USE_BSPBVH = USE_BSPBVH_i;
 	for(int t=0; t<MAX_ANIMATION_ITERATIONS; t++){
 		if(USE_CUDA){
 			scene = d_initScene(tData, t);

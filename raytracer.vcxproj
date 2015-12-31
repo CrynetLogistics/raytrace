@@ -270,7 +270,9 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="BinTree\BinTreeNode.cuh" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="Plane.h" />
+    <ClInclude Include="Queue\Queue.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="support.h" />
     <ClInclude Include="Tri.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

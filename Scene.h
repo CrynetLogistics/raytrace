@@ -1,11 +1,5 @@
 #pragma once
-#include "Camera.h"
-#include "Light.h"
-#include "Sphere.h"
-#include "Plane.h"
-#include "Tri.h"
-#include "stdlib.h"
-#include "stdio.h"
+#include "support.h"
 #include "BinTree/BinTree.cuh"
 
 class Scene
@@ -35,6 +29,7 @@ public:
 	__host__ __device__ uint32_t* getTexture(void);
 	__host__ __device__ Mesh** getMeshes(void);
 	__host__ __device__ void buildBSPBVH(void);
+	__host__ __device__ float collisionDetect(vector_t ray, Mesh** mesh);
 	__host__ __device__ ~Scene(void);
 };
 
