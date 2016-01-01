@@ -14,7 +14,7 @@ __host__ __device__ void BinTree::buildTree(int maxTreeHeight){
 
 __host__ __device__ float BinTree::findCollisionMesh(vector_t ray, Mesh** mesh){
 	///NEED FAR MORE SPACE FOR THISSSS
-	Queue<BinTreeNode*> collisionPotentials(pow(2.0f, maxTreeHeight+1));
+	Stack<BinTreeNode*> collisionPotentials(maxTreeHeight);
 	BinTreeNode* current = root;
 
 	Mesh* currentBestMesh;
@@ -27,7 +27,7 @@ __host__ __device__ float BinTree::findCollisionMesh(vector_t ray, Mesh** mesh){
 
 			float tCurrent = current->getMeshAt(i)->getIntersectionParameter(ray);
 
-			if(EPSILON<tCurrent && tCurrent<tMin && tCurrent!=0){
+			if(EPSILON<tCurrent && tCurrent<tMin){// && tCurrent!=0){
 				tMin = tCurrent;
 				currentBestMesh = current->getMeshAt(i);
 			}

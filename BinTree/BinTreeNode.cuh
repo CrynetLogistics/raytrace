@@ -16,6 +16,7 @@ private:
 	int numOfMeshes;
 	int INITIAL_MESHES;
 
+	//MAKE OBSOLETE
 	//repetitionIndex = number of times the box has had the
 	//					same number of meshes
 	int repetitionIndex;

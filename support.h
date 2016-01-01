@@ -5,3 +5,4 @@
 #include "Tri.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "Stack/Stack.h"

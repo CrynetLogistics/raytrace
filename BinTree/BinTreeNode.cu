@@ -52,6 +52,7 @@ __host__ __device__ void BinTreeNode::propagateTree(int maxTreeHeight){
 		return;
 	}
 
+	int currentHeadMesh = 0;
 	int leftBoxMeshCount = 0;
 	int rightBoxMeshCount = 0;
 	Mesh** leftMeshes = (Mesh**)malloc(sizeof(Mesh*)*numOfMeshes);
@@ -59,7 +60,7 @@ __host__ __device__ void BinTreeNode::propagateTree(int maxTreeHeight){
 	extremum_t leftBox = extremum.getPartitionedLowExtremum();
 	extremum_t rightBox = extremum.getPartitionedHighExtremum();
 
-	for(int i=0; i<INITIAL_MESHES; i++){
+	for(int i=0; i<numOfMeshes; i++){
 		int leftContainmentIndex = meshes[i]->isContainedWithin(leftBox);
 		int rightContainmentIndex = meshes[i]->isContainedWithin(rightBox);
 		if(leftContainmentIndex==2){
@@ -68,12 +69,14 @@ __host__ __device__ void BinTreeNode::propagateTree(int maxTreeHeight){
 
 			meshes[i] = meshes[numOfMeshes-1];
 			numOfMeshes--;
+			i--;
 		}else if(rightContainmentIndex==2){
 			rightMeshes[rightBoxMeshCount] = meshes[i];
 			rightBoxMeshCount++;
 
 			meshes[i] = meshes[numOfMeshes-1];
 			numOfMeshes--;
+			i--;
 		}else{
 			//leave the mesh in the parent and dont touch the children
 		}

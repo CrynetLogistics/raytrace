@@ -272,6 +272,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Queue\Queue.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Stack\Stack.h" />
     <ClInclude Include="support.h" />
     <ClInclude Include="Tri.h" />
   </ItemGroup>

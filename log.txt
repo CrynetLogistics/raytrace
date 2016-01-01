@@ -49,9 +49,11 @@ the recursion will be arbitarily deep, will find an iterative alternative
 96 - MultiSampling AntiAliasing (MSAA) implemented
 104 - implemented Binary Spatial Partitioning (BSP) Bounded Volume Hierachy (BVH) for CPUs
 105 - another default scene with toruses
+109 - replaced stack implementation for tree queues instead of queues
+110 - no bugs remaining, CPU implementation of BSP BVH is fully working, significant improvements to render speed observed as expected: 650s with no BVH, 90s with 32 bisections using BVH
 
 Features:
-CUDA renderer, Global illumination, Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing
+CUDA renderer, Global illumination (GI), Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing (MSAA), Binary Spatial Partitioning Bounded Volume Hierachy (BSP-BVH) for CPUs
 
 Upcoming Features:
 Ambient Occlusion Pass, BSP-BVH for GPUs
