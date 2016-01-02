@@ -9,7 +9,6 @@ class BinTree
 private:
 	BinTreeNode* root;
 	int maxTreeHeight;
-	//Mesh* FLOOR_MESH;
 public:
 	__host__ __device__ BinTree(Mesh** meshes, int numOfMeshes);
 	__host__ __device__ void buildTree(int maxTreeHeight);

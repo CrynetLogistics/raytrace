@@ -13,22 +13,22 @@ private:
 
 	T* stackArray;
 public:
-	Stack(int maxHeight);
-	void add(T item);
-	T pop(void);
-	bool isEmpty(void);
-	~Stack(void);
+	__host__ __device__ Stack(int maxHeight);
+	__host__ __device__ void add(T item);
+	__host__ __device__ T pop(void);
+	__host__ __device__ bool isEmpty(void);
+	__host__ __device__ ~Stack(void);
 };
 
 template <class T>
-Stack<T>::Stack(int maxHeight){
+__host__ __device__ Stack<T>::Stack(int maxHeight){
 	this->maxHeight = maxHeight;
 	stackArray = (T*)malloc(sizeof(T)*maxHeight);
 	top = 0;
 }
 
 template <class T>
-void Stack<T>::add(T item){
+__host__ __device__ void Stack<T>::add(T item){
 	if(top==maxHeight){
 		printf("Error: Stack Full, ");
 		return;
@@ -38,7 +38,7 @@ void Stack<T>::add(T item){
 }
 
 template <class T>
-T Stack<T>::pop(void){
+__host__ __device__ T Stack<T>::pop(void){
 	if(top==0){
 		printf("Error: Stack Empty, ");
 	}
@@ -49,12 +49,12 @@ T Stack<T>::pop(void){
 }
 
 template <class T>
-bool Stack<T>::isEmpty(void){
+__host__ __device__ bool Stack<T>::isEmpty(void){
 	return top==0;
 }
 
 
 template <class T>
-Stack<T>::~Stack(void){
+__host__ __device__ Stack<T>::~Stack(void){
 	free(stackArray);
 }

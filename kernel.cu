@@ -95,14 +95,18 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 
 	//6 Meshes; Meshes = {Spheres, Planes}
 	//Scene scene(9, textureData);
-	d_scene = new (d_scene) Scene(8 + *d_numOfTris, textureData);
+	d_scene = new (d_scene) Scene(4 + *d_numOfTris, textureData);
 	//d_scene = new Scene(9, textureData);
 	d_scene->addLight(-1,8,6,10);
 	d_scene->setHorizonColour(black);
-	d_scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
+	//d_scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
 	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
-	d_scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
+	//d_scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
+	d_scene->addTri(v1,v2,v3,bright_green, SHINY);
+	d_scene->addTri(v2,v3,v4,bright_green, SHINY);
+	d_scene->addTri(v3,v4,v5,bright_green, SHINY);
+	d_scene->addTri(v4,v5,v6,bright_green, SHINY);
 	//scene->addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
 	//scene->addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
 	/*d_scene->addSphere(2,10,5,2.5,dark_red,SHINY);
@@ -117,9 +121,14 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	for(int i=0; i<*d_numOfTris; i++){
 		d_scene->addTri(d_verts[d_tris[i].v1-1], d_verts[d_tris[i].v2-1], d_verts[d_tris[i].v3-1], cold_blue, DIFFUSE);
 	}
+
 	//THIS FLAG HERE CREATES RESOURCES LEAK EITHER DUE TO MALLOC MISUSE OR WRONG THREADS OR BLOCKS FOR DIFFICULT TASK - THREAD TIMEOUT
-	//d_scene->buildBSPBVH(BSPBVH_DEPTH); -------- NEEDS CONDITIONAL GUARDS HERE FOR BSPBVH_DEPTH
+	//d_scene->buildBSPBVH(16);// -------- NEEDS CONDITIONAL GUARDS HERE FOR BSPBVH_DEPTH
 	//auto parser
+}
+
+__global__ void d_buildBSPBVH(Scene* d_scene, int* d_buildBSPBVH){
+	d_scene->buildBSPBVH(*d_buildBSPBVH);
 }
 
 Scene* d_initScene(uint32_t* h_texture, int t){
@@ -161,6 +170,17 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 	cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
 
 	d_initScene<<<1,1>>>(d_scene, d_textureData, d_param, d_numOfTris, d_verts, d_tris);
+
+	if(BSPBVH_DEPTH!=0){
+		int* d_BSPBVH_DEPTH;
+
+		cudaMalloc((void**) &d_BSPBVH_DEPTH, sizeof(int));
+		cudaMemcpy(d_BSPBVH_DEPTH, &BSPBVH_DEPTH, sizeof(int), cudaMemcpyHostToDevice);
+
+		d_buildBSPBVH<<<1,1>>>(d_scene, d_BSPBVH_DEPTH);
+
+		cudaFree(d_BSPBVH_DEPTH);
+	}
 
 	cudaFree(d_param);
 	free(h_param);

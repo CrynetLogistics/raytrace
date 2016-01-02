@@ -13,7 +13,6 @@ __host__ __device__ void BinTree::buildTree(int maxTreeHeight){
 }
 
 __host__ __device__ float BinTree::findCollisionMesh(vector_t ray, Mesh** mesh){
-	///NEED FAR MORE SPACE FOR THISSSS
 	Stack<BinTreeNode*> collisionPotentials(maxTreeHeight);
 	BinTreeNode* current = root;
 
