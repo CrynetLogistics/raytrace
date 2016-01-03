@@ -23,7 +23,8 @@ private:
 public:
 	__host__ __device__ BinTreeNode(Mesh** meshes, int numOfMeshes, extremum_t extremum, int repetitionIndex);
 	__host__ __device__ BinTreeNode(Mesh** meshes, int numOfMeshes);
-	__host__ __device__ void propagateTree(int maxTreeHeight);
+	__host__ void propagateTree(int maxTreeHeight);
+	__device__ void propagateTree(int maxTreeHeight, Stack<BinTreeNode*> *d_unPropagatedNodes);
 	__host__ __device__ bool containsRay(vector_t ray);
 	__host__ __device__ bool isLeaf(void);
 	__host__ __device__ BinTreeNode* getLeftChild(void);

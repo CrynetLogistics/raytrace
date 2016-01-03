@@ -11,7 +11,8 @@ private:
 	int maxTreeHeight;
 public:
 	__host__ __device__ BinTree(Mesh** meshes, int numOfMeshes);
-	__host__ __device__ void buildTree(int maxTreeHeight);
+	__host__ void buildTree(int maxTreeHeight);
+	__device__ void buildTree(int maxTreeHeight, Stack<BinTreeNode*> *d_unPropagatedNodes);
 
 	//The mesh is returned through the pointer and the distance
 	//is returned by the function

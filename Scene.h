@@ -28,7 +28,8 @@ public:
 	__host__ __device__ int getNumOfMeshes(void);
 	__host__ __device__ uint32_t* getTexture(void);
 	__host__ __device__ Mesh** getMeshes(void);
-	__host__ __device__ void buildBSPBVH(int BSPBVH_DEPTH);
+	__host__ void buildBSPBVH(int BSPBVH_DEPTH);
+	__device__ void buildBSPBVH(int BSPBVH_DEPTH, Stack<BinTreeNode*> *d_unPropagatedNodes);
 	__host__ __device__ float collisionDetect(vector_t ray, Mesh** mesh);
 	__host__ __device__ ~Scene(void);
 };

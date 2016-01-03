@@ -51,9 +51,10 @@ the recursion will be arbitarily deep, will find an iterative alternative
 105 - another default scene with toruses
 109 - replaced stack implementation for tree queues instead of queues
 110 - no bugs remaining, CPU implementation of BSP BVH is fully working, significant improvements to render speed observed as expected: 650s with no BVH, 90s with 32 bisections using BVH
+115 - GPU implementation of BSP BVH working, unimaginable improvements to render speed observed: (CPU: 650s no BVH, 90s with 32 Hierarchies) (GPU: 88s no BVH, 29s with with 32 Hierarchies)
 
 Features:
-CUDA renderer, Global illumination (GI), Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing (MSAA), Binary Spatial Partitioning Bounded Volume Hierachy (BSP-BVH) for CPUs
+CUDA renderer, Global illumination (GI), Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing (MSAA), Binary Spatial Partitioning Bounded Volume Hierachy (BSP-BVH) for CPUs and GPUs
 
 Upcoming Features:
-Ambient Occlusion Pass, BSP-BVH for GPUs
+Ambient Occlusion Pass, Queue Implemented BVH builder for GPUs

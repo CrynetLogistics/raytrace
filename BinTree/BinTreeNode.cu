@@ -45,7 +45,7 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, ext
 //one of the bounding boxes
 //Termination of propagation also occurs if the tree height is greater
 //than a specified length
-__host__ __device__ void BinTreeNode::propagateTree(int maxTreeHeight){
+__host__ void BinTreeNode::propagateTree(int maxTreeHeight){
 	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxTreeHeight == 0){
 		hasChildren = false;
 		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
@@ -99,6 +99,67 @@ __host__ __device__ void BinTreeNode::propagateTree(int maxTreeHeight){
 	rightChild = new BinTreeNode(rightMeshes, rightBoxMeshCount, rightBox, repetitionIndex);
 	leftChild->propagateTree(maxTreeHeight-1);
 	rightChild->propagateTree(maxTreeHeight-1);
+
+	free(leftMeshes);
+	free(rightMeshes);
+
+	printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+}
+
+__device__ void BinTreeNode::propagateTree(int maxTreeHeight, Stack<BinTreeNode*> *d_unPropagatedNodes){
+	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxTreeHeight == 0){
+		hasChildren = false;
+		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+		return;
+	}
+
+	int currentHeadMesh = 0;
+	int leftBoxMeshCount = 0;
+	int rightBoxMeshCount = 0;
+	Mesh** leftMeshes = (Mesh**)malloc(sizeof(Mesh*)*numOfMeshes);
+	Mesh** rightMeshes = (Mesh**)malloc(sizeof(Mesh*)*numOfMeshes);
+	extremum_t leftBox = extremum.getPartitionedLowExtremum();
+	extremum_t rightBox = extremum.getPartitionedHighExtremum();
+
+	for(int i=0; i<numOfMeshes; i++){
+		int leftContainmentIndex = meshes[i]->isContainedWithin(leftBox);
+		int rightContainmentIndex = meshes[i]->isContainedWithin(rightBox);
+		if(leftContainmentIndex==2){
+			leftMeshes[leftBoxMeshCount] = meshes[i];
+			leftBoxMeshCount++;
+
+			meshes[i] = meshes[numOfMeshes-1];
+			numOfMeshes--;
+			i--;
+		}else if(rightContainmentIndex==2){
+			rightMeshes[rightBoxMeshCount] = meshes[i];
+			rightBoxMeshCount++;
+
+			meshes[i] = meshes[numOfMeshes-1];
+			numOfMeshes--;
+			i--;
+		}else{
+			//leave the mesh in the parent and dont touch the children
+		}
+	}
+
+	if(leftBoxMeshCount==INITIAL_MESHES || rightBoxMeshCount==INITIAL_MESHES){
+		repetitionIndex++;
+	}
+
+	if(repetitionIndex>REPETITION_INDEX_SENSITIVITY){
+		free(leftMeshes);
+		free(rightMeshes);
+		hasChildren = false;
+		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+		return;
+	}
+
+	hasChildren = true;
+	leftChild = new BinTreeNode(leftMeshes, leftBoxMeshCount, leftBox, repetitionIndex);
+	rightChild = new BinTreeNode(rightMeshes, rightBoxMeshCount, rightBox, repetitionIndex);
+	d_unPropagatedNodes->add(leftChild);
+	d_unPropagatedNodes->add(rightChild);
 
 	free(leftMeshes);
 	free(rightMeshes);

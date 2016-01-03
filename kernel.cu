@@ -127,8 +127,15 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	//auto parser
 }
 
-__global__ void d_buildBSPBVH(Scene* d_scene, int* d_buildBSPBVH){
-	d_scene->buildBSPBVH(*d_buildBSPBVH);
+__global__ void d_buildBSPBVH(Scene* d_scene, int* d_buildBSPBVH, Stack<BinTreeNode*> *d_unPropagatedNodes){
+	//makeshift size for now
+	d_unPropagatedNodes = new (d_unPropagatedNodes) Stack<BinTreeNode*>(2);
+
+	d_scene->buildBSPBVH(*d_buildBSPBVH, d_unPropagatedNodes);
+}
+
+__global__ void d_continuePropagation(Stack<BinTreeNode*> *d_unPropagatedNodes){
+	d_unPropagatedNodes->pop()->propagateTree(0, d_unPropagatedNodes);
 }
 
 Scene* d_initScene(uint32_t* h_texture, int t){
@@ -173,13 +180,26 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 
 	if(BSPBVH_DEPTH!=0){
 		int* d_BSPBVH_DEPTH;
+		Stack<BinTreeNode*> *d_unPropagatedNodes;
+		Stack<BinTreeNode*> *h_unPropagatedNodes = (Stack<BinTreeNode*> *)malloc(sizeof(Stack<BinTreeNode>));
 
+		cudaMalloc((void**) &d_unPropagatedNodes, sizeof(Stack<BinTreeNode*>));
 		cudaMalloc((void**) &d_BSPBVH_DEPTH, sizeof(int));
 		cudaMemcpy(d_BSPBVH_DEPTH, &BSPBVH_DEPTH, sizeof(int), cudaMemcpyHostToDevice);
 
-		d_buildBSPBVH<<<1,1>>>(d_scene, d_BSPBVH_DEPTH);
+		d_buildBSPBVH<<<1,1>>>(d_scene, d_BSPBVH_DEPTH, d_unPropagatedNodes);
+
+		cudaMemcpy(h_unPropagatedNodes, d_unPropagatedNodes, sizeof(Stack<BinTreeNode*>), cudaMemcpyDeviceToHost);
+
+		while(!h_unPropagatedNodes->isEmpty()){
+		
+			d_continuePropagation<<<1,1>>>(d_unPropagatedNodes);
+			cudaMemcpy(h_unPropagatedNodes, d_unPropagatedNodes, sizeof(Stack<BinTreeNode*>), cudaMemcpyDeviceToHost);
+		}
 
 		cudaFree(d_BSPBVH_DEPTH);
+		cudaFree(d_unPropagatedNodes);
+		free(h_unPropagatedNodes);
 	}
 
 	cudaFree(d_param);
