@@ -386,6 +386,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 {
 	std::clock_t start;
 	start = std::clock();
+	double afterSceneCreation;
+	double beforeSceneCreation;
+
 
 	///
 	MSAA_LEVEL = MSAA_LEVEL_i;
@@ -430,12 +433,18 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	thisLaunch->MSAA_SAMPLES = MSAA_LEVEL+1;
 	thisLaunch->BSPBVH_DEPTH = BSPBVH_DEPTH_i;
 	for(int t=0; t<MAX_ANIMATION_ITERATIONS; t++){
+
+		//takes time signature before scene is built
+		beforeSceneCreation = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+
 		if(USE_CUDA){
 			scene = d_initScene(tData, t);
 		}else{
 			scene = h_initScene(tData, t);
 		}
 
+		//takes time signature after scene is built
+		afterSceneCreation = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 				
 		if(USE_BLOCK_BY_BLOCKING_RENDERING){
 			for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
@@ -465,7 +474,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 
 	double timeDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 
-	printf("done in %.3fs",timeDuration);
+	printf("Done in %.3fs\n\twith scene creation taking %.3fs", timeDuration, afterSceneCreation - beforeSceneCreation);
 	if(USE_CUDA){
 		d_destroyScene(scene, tData);
 	}else{

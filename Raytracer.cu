@@ -28,7 +28,7 @@ int main(){
 	cudaGetDeviceCount(&CUDA_DEVICE_NUMBER);
 
 	cout<<LINE_SEPARATE<<endl;
-	cout<<"WELCOME TO RAYTE v0.96 CPU/GPU RAYTRACER"<<endl;
+	cout<<"WELCOME TO RAYTE v1.18 CPU/GPU RAYTRACER"<<endl;
 	cout<<"RAYTE IS OPEN SOURCE AND DISTRIBUTED UNDER"<<endl;
 	cout<<"CC4.0-ATTRIBUTION-SHAREALIKE-INTERNATIONAL"<<endl;
 	cout<<"THE SOURCE LIVES AT crynetlogistics.github.io/raytrace"<<endl;
