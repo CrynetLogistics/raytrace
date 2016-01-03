@@ -3,18 +3,18 @@
 #define EPSILON 0.001f
 #define CLIPPING_DISTANCE 999
 
-__host__ __device__ BinTree::BinTree(Mesh** meshes, int numOfMeshes){
-	root = new BinTreeNode(meshes, numOfMeshes);
+__host__ __device__ BinTree::BinTree(Mesh** meshes, int numOfMeshes, int maxTreeHeight){
+	this->maxTreeHeight = maxTreeHeight;
+	root = new BinTreeNode(meshes, numOfMeshes, maxTreeHeight);
 }
 
-__host__ void BinTree::buildTree(int maxTreeHeight){
-	this->maxTreeHeight = maxTreeHeight;
-	root->propagateTree(maxTreeHeight);
+__host__ void BinTree::buildTree(){
+	root->propagateTree();
 }
 
-__device__ void BinTree::buildTree(int maxTreeHeight, Stack<BinTreeNode*> *d_unPropagatedNodes){
+__device__ void BinTree::buildTree(Stack<BinTreeNode*> *d_unPropagatedNodes){
 	this->maxTreeHeight = maxTreeHeight;
-	root->propagateTree(maxTreeHeight, d_unPropagatedNodes);
+	root->propagateTree(d_unPropagatedNodes);
 }
 
 __host__ __device__ float BinTree::findCollisionMesh(vector_t ray, Mesh** mesh){

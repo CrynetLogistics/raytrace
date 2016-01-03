@@ -121,21 +121,17 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	for(int i=0; i<*d_numOfTris; i++){
 		d_scene->addTri(d_verts[d_tris[i].v1-1], d_verts[d_tris[i].v2-1], d_verts[d_tris[i].v3-1], cold_blue, DIFFUSE);
 	}
-
-	//THIS FLAG HERE CREATES RESOURCES LEAK EITHER DUE TO MALLOC MISUSE OR WRONG THREADS OR BLOCKS FOR DIFFICULT TASK - THREAD TIMEOUT
-	//d_scene->buildBSPBVH(16);// -------- NEEDS CONDITIONAL GUARDS HERE FOR BSPBVH_DEPTH
-	//auto parser
 }
 
 __global__ void d_buildBSPBVH(Scene* d_scene, int* d_buildBSPBVH, Stack<BinTreeNode*> *d_unPropagatedNodes){
-	//makeshift size for now
-	d_unPropagatedNodes = new (d_unPropagatedNodes) Stack<BinTreeNode*>(2);
+	int bottomMax = powf(2.0f, (float) *d_buildBSPBVH);
+	d_unPropagatedNodes = new (d_unPropagatedNodes) Stack<BinTreeNode*>(bottomMax);
 
 	d_scene->buildBSPBVH(*d_buildBSPBVH, d_unPropagatedNodes);
 }
 
 __global__ void d_continuePropagation(Stack<BinTreeNode*> *d_unPropagatedNodes){
-	d_unPropagatedNodes->pop()->propagateTree(0, d_unPropagatedNodes);
+	d_unPropagatedNodes->pop()->propagateTree(d_unPropagatedNodes);
 }
 
 Scene* d_initScene(uint32_t* h_texture, int t){

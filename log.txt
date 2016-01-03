@@ -57,4 +57,4 @@ Features:
 CUDA renderer, Global illumination (GI), Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing (MSAA), Binary Spatial Partitioning Bounded Volume Hierachy (BSP-BVH) for CPUs and GPUs
 
 Upcoming Features:
-Ambient Occlusion Pass, Queue Implemented BVH builder for GPUs
+Ambient Occlusion Pass

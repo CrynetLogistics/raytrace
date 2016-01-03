@@ -3,7 +3,7 @@
 #define REPETITION_INDEX_SENSITIVITY 20
 #define SMALLEST_MESH_NO_IN_BOUNDING_BOX 3
 
-__host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes){
+__host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, int maxChildrenHeight){
 	this->numOfMeshes = numOfMeshes;
 	INITIAL_MESHES = numOfMeshes;
 	this->meshes = (Mesh**)malloc(sizeof(Mesh*)*numOfMeshes);
@@ -21,9 +21,10 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes){
 	vertex_t highE = extremum.getHighExtremum();
 	printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
 	repetitionIndex = 0;
+	this->maxChildrenHeight = maxChildrenHeight;
 }
 
-__host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, extremum_t extremum, int repetitionIndex){
+__host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, extremum_t extremum, int repetitionIndex, int maxChildrenHeight){
 	this->numOfMeshes = numOfMeshes;
 	INITIAL_MESHES = numOfMeshes;
 	this->meshes = (Mesh**)malloc(sizeof(Mesh*)*numOfMeshes);
@@ -37,6 +38,7 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, ext
 	vertex_t lowE = extremum.getLowExtremum();
 	vertex_t highE = extremum.getHighExtremum();
 	printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
+	this->maxChildrenHeight = maxChildrenHeight;
 }
 
 //The treeNode stops having leaves if it contains less than 3 meshes
@@ -45,8 +47,8 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, ext
 //one of the bounding boxes
 //Termination of propagation also occurs if the tree height is greater
 //than a specified length
-__host__ void BinTreeNode::propagateTree(int maxTreeHeight){
-	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxTreeHeight == 0){
+__host__ void BinTreeNode::propagateTree(){
+	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxChildrenHeight == 0){
 		hasChildren = false;
 		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 		return;
@@ -95,10 +97,10 @@ __host__ void BinTreeNode::propagateTree(int maxTreeHeight){
 	}
 
 	hasChildren = true;
-	leftChild = new BinTreeNode(leftMeshes, leftBoxMeshCount, leftBox, repetitionIndex);
-	rightChild = new BinTreeNode(rightMeshes, rightBoxMeshCount, rightBox, repetitionIndex);
-	leftChild->propagateTree(maxTreeHeight-1);
-	rightChild->propagateTree(maxTreeHeight-1);
+	leftChild = new BinTreeNode(leftMeshes, leftBoxMeshCount, leftBox, repetitionIndex, maxChildrenHeight-1);
+	rightChild = new BinTreeNode(rightMeshes, rightBoxMeshCount, rightBox, repetitionIndex, maxChildrenHeight-1);
+	leftChild->propagateTree();
+	rightChild->propagateTree();
 
 	free(leftMeshes);
 	free(rightMeshes);
@@ -106,8 +108,8 @@ __host__ void BinTreeNode::propagateTree(int maxTreeHeight){
 	printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 }
 
-__device__ void BinTreeNode::propagateTree(int maxTreeHeight, Stack<BinTreeNode*> *d_unPropagatedNodes){
-	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxTreeHeight == 0){
+__device__ void BinTreeNode::propagateTree(Stack<BinTreeNode*> *d_unPropagatedNodes){
+	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxChildrenHeight == 0){
 		hasChildren = false;
 		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 		return;
@@ -156,8 +158,8 @@ __device__ void BinTreeNode::propagateTree(int maxTreeHeight, Stack<BinTreeNode*
 	}
 
 	hasChildren = true;
-	leftChild = new BinTreeNode(leftMeshes, leftBoxMeshCount, leftBox, repetitionIndex);
-	rightChild = new BinTreeNode(rightMeshes, rightBoxMeshCount, rightBox, repetitionIndex);
+	leftChild = new BinTreeNode(leftMeshes, leftBoxMeshCount, leftBox, repetitionIndex, maxChildrenHeight-1);
+	rightChild = new BinTreeNode(rightMeshes, rightBoxMeshCount, rightBox, repetitionIndex, maxChildrenHeight-1);
 	d_unPropagatedNodes->add(leftChild);
 	d_unPropagatedNodes->add(rightChild);
 
