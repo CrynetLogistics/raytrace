@@ -38,6 +38,7 @@ int SCREEN_HEIGHT = 720;
 int MSAA_LEVEL = 0;
 int BSPBVH_DEPTH = 0;
 int ENABLE_TEXTURES = 1;
+int DEBUG_LEVEL = 0;
 
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
@@ -145,7 +146,7 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
-	scenePrototype_t exterior = parseFile(FILENAME);
+	scenePrototype_t exterior = parseFile(FILENAME, DEBUG_LEVEL);
 	vertex_t* h_verts = exterior.verts;
 	triPrototype_t* h_tris = exterior.tris;
 	int h_numOfTris = exterior.numOfTris;
@@ -180,6 +181,7 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 
 	d_initScene<<<1,1>>>(d_scene, d_textureData, d_param, d_numOfTris, d_verts, d_tris);
 
+	std::cout<<"Building BSP BVH on GPU...";
 	if(BSPBVH_DEPTH!=0){
 		int* d_BSPBVH_DEPTH;
 		Stack<BinTreeNode*> *d_unPropagatedNodes;
@@ -203,6 +205,7 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 		cudaFree(d_unPropagatedNodes);
 		free(h_unPropagatedNodes);
 	}
+	std::cout<<"done"<<std::endl;
 
 	cudaFree(d_param);
 	free(h_param);
@@ -250,7 +253,7 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	v8.x = 30;v8.y = 0;v8.z = 30;
 
 	//autoparser
-	scenePrototype_t exterior = parseFile(FILENAME);
+	scenePrototype_t exterior = parseFile(FILENAME, DEBUG_LEVEL);
 
 	Scene *scene = new Scene(4 + exterior.numOfTris, h_texture);
 	scene->addLight(-1,8,6,10);
@@ -282,9 +285,11 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
+	std::cout<<"Building BSP BVH on CPU...";
 	if(BSPBVH_DEPTH!=0){
 		scene->buildBSPBVH(BSPBVH_DEPTH);
 	}
+	std::cout<<"done"<<std::endl;
 
 	return scene;
 }
@@ -389,7 +394,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scen
 }
 
 int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i,
-			 int MSAA_LEVEL_i, int BSPBVH_DEPTH_i, int ENABLE_TEXTURES_i)
+			 int MSAA_LEVEL_i, int BSPBVH_DEPTH_i, int ENABLE_TEXTURES_i, int DEBUG_LEVEL_i)
 {
 	std::clock_t start;
 	start = std::clock();
@@ -405,6 +410,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	SCREEN_WIDTH = SCREEN_WIDTH_i;
 	BSPBVH_DEPTH = BSPBVH_DEPTH_i;
 	ENABLE_TEXTURES = ENABLE_TEXTURES_i;
+	DEBUG_LEVEL = DEBUG_LEVEL_i;
 
     SDL_Window* window = NULL;
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -430,7 +436,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 		}
 
 
-		uint32_t* tData = (uint32_t*)malloc(TEXTURE_WIDTH*TEXTURE_HEIGHT*sizeof(uint32_t));
+		tData = (uint32_t*)malloc(TEXTURE_WIDTH*TEXTURE_HEIGHT*sizeof(uint32_t));
 		for(int i=0;i<TEXTURE_WIDTH*TEXTURE_HEIGHT;i++){
 			tData[i] = getpixel(texture, i%TEXTURE_WIDTH, i/TEXTURE_WIDTH);
 		}
@@ -495,7 +501,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 		h_destroyScene(scene);
 	}
 	IMG_Quit();
-	free(tData);
+	if(ENABLE_TEXTURES){
+		free(tData);
+	}
 	free(thisLaunch);
 	while(true){
 		SDL_Delay(DISPLAY_TIME);

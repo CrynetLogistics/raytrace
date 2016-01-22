@@ -11,4 +11,4 @@ typedef struct scenePrototype{
 	int numOfVerts;
 } scenePrototype_t;
 
-scenePrototype_t parseFile(std::string filename);
+scenePrototype_t parseFile(std::string filename, int DEBUG_LEVEL);

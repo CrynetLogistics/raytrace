@@ -7,7 +7,11 @@
 #include "Auxiliary/structures.h"
 using namespace std;
 
-scenePrototype_t parseFile(string filename) {
+scenePrototype_t parseFile(string filename, int DEBUG_LEVEL) {
+	cout<<"Parsing object file "<<filename<<"...";
+	if(DEBUG_LEVEL){
+		cout<<endl;
+	}
 	ifstream inputFile;
 	scenePrototype_t output;
 	inputFile.open(filename);
@@ -39,7 +43,9 @@ scenePrototype_t parseFile(string filename) {
 				inputFile>>tris[numberOfTris-1].v1>>tris[numberOfTris-1].v2>>tris[numberOfTris-1].v3;
 				inputFile>>ws;
 			}else{
-				cerr<<"I DONT KNOW WHAT I HAVE ENCOUNTERED"<<endl;
+				if(DEBUG_LEVEL){
+					cerr<<"I DONT KNOW WHAT I HAVE ENCOUNTERED"<<endl;
+				}
 				inputFile.getline(s, 512);
 			}
 		}
@@ -47,10 +53,14 @@ scenePrototype_t parseFile(string filename) {
 		inputFile.close();
 
 		for(int i=0; i<numberOfVerticies; i++){
-			cout<<"Vertex "<<i<<" : ("<<verts[i].x<<","<<verts[i].y<<","<<verts[i].z<<")"<<endl;
+			if(DEBUG_LEVEL){
+				cout<<"Vertex "<<i<<" : ("<<verts[i].x<<","<<verts[i].y<<","<<verts[i].z<<")"<<endl;
+			}
 		}
 		for(int i=0; i<numberOfTris; i++){
-			cout<<"Tri "<<i<<" : ("<<tris[i].v1<<","<<tris[i].v2<<","<<tris[i].v3<<")"<<endl;
+			if(DEBUG_LEVEL){
+				cout<<"Tri "<<i<<" : ("<<tris[i].v1<<","<<tris[i].v2<<","<<tris[i].v3<<")"<<endl;
+			}
 		}
 
 		output.tris = tris;
@@ -65,6 +75,6 @@ scenePrototype_t parseFile(string filename) {
 		exit(0);
 	}
 	//VERTS SHOULD BE FREED AT THE END OF THE PROGRAM free(verts);
-
+	cout<<"done"<<endl;
 	return output;
 }

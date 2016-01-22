@@ -19,7 +19,8 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, int
 
 	vertex_t lowE = extremum.getLowExtremum();
 	vertex_t highE = extremum.getHighExtremum();
-	printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
+	//USEFUL FOR DEBUGGING
+	//printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
 	repetitionIndex = 0;
 	this->maxChildrenHeight = maxChildrenHeight;
 }
@@ -37,7 +38,8 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, ext
 
 	vertex_t lowE = extremum.getLowExtremum();
 	vertex_t highE = extremum.getHighExtremum();
-	printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
+	//USEFUL FOR DEBUGGING
+	//printf("Box, %i meshes, l[%.2f,%.2f,%.2f], h[%.2f,%.2f,%.2f]\n", numOfMeshes, lowE.x, lowE.y, lowE.z, highE.x, highE.y, highE.z);
 	this->maxChildrenHeight = maxChildrenHeight;
 }
 
@@ -50,7 +52,8 @@ __host__ __device__ BinTreeNode::BinTreeNode(Mesh** meshes, int numOfMeshes, ext
 __host__ void BinTreeNode::propagateTree(){
 	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxChildrenHeight == 0){
 		hasChildren = false;
-		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+		//USEFUL FOR DEBUGGING
+		//printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 		return;
 	}
 
@@ -92,7 +95,8 @@ __host__ void BinTreeNode::propagateTree(){
 		free(leftMeshes);
 		free(rightMeshes);
 		hasChildren = false;
-		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+		//USEFUL FOR DEBUGGING
+		//printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 		return;
 	}
 
@@ -105,13 +109,15 @@ __host__ void BinTreeNode::propagateTree(){
 	free(leftMeshes);
 	free(rightMeshes);
 
-	printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+	//USEFUL FOR DEBUGGING
+	//printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 }
 
 __device__ void BinTreeNode::propagateTree(Stack<BinTreeNode*> *d_unPropagatedNodes){
 	if(numOfMeshes < SMALLEST_MESH_NO_IN_BOUNDING_BOX || maxChildrenHeight == 0){
 		hasChildren = false;
-		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+		//USEFUL FOR DEBUGGING
+		//printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 		return;
 	}
 
@@ -153,7 +159,8 @@ __device__ void BinTreeNode::propagateTree(Stack<BinTreeNode*> *d_unPropagatedNo
 		free(leftMeshes);
 		free(rightMeshes);
 		hasChildren = false;
-		printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+		//USEFUL FOR DEBUGGING
+		//printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 		return;
 	}
 
@@ -166,7 +173,8 @@ __device__ void BinTreeNode::propagateTree(Stack<BinTreeNode*> *d_unPropagatedNo
 	free(leftMeshes);
 	free(rightMeshes);
 
-	printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
+	//USEFUL FOR DEBUGGING
+	//printf("STARTED WITH %i MESHES, FINISHED WITH %i MESHES\n", INITIAL_MESHES, numOfMeshes);
 }
 
 __host__ __device__ bool BinTreeNode::containsRay(vector_t ray){
