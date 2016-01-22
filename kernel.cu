@@ -37,6 +37,7 @@ int SCREEN_WIDTH = 1280;
 int SCREEN_HEIGHT = 720;
 int MSAA_LEVEL = 0;
 int BSPBVH_DEPTH = 0;
+int ENABLE_TEXTURES = 1;
 
 #define USE_BLOCK_BY_BLOCKING_RENDERING 1
 
@@ -166,11 +167,16 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 
 	
 	cudaMalloc((void**) &d_param, sizeof(int));
-	cudaMalloc((void**) &d_textureData, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH);
 	cudaMalloc((void**) &d_scene, sizeof(Scene));
 	
 	cudaMemcpy(d_param, h_param, sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
+
+	if(ENABLE_TEXTURES){
+		cudaMalloc((void**) &d_textureData, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH);
+		cudaMemcpy(d_textureData, h_texture, sizeof(uint32_t)*TEXTURE_HEIGHT*TEXTURE_WIDTH, cudaMemcpyHostToDevice);
+	}else{
+		cudaMalloc((void**) &d_textureData, 1);
+	}
 
 	d_initScene<<<1,1>>>(d_scene, d_textureData, d_param, d_numOfTris, d_verts, d_tris);
 
@@ -382,7 +388,8 @@ void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scen
 	free(finalColour);
 }
 
-int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i, int MSAA_LEVEL_i, int BSPBVH_DEPTH_i)
+int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string FILENAME_i,
+			 int MSAA_LEVEL_i, int BSPBVH_DEPTH_i, int ENABLE_TEXTURES_i)
 {
 	std::clock_t start;
 	start = std::clock();
@@ -397,6 +404,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	SCREEN_HEIGHT = SCREEN_HEIGHT_i;
 	SCREEN_WIDTH = SCREEN_WIDTH_i;
 	BSPBVH_DEPTH = BSPBVH_DEPTH_i;
+	ENABLE_TEXTURES = ENABLE_TEXTURES_i;
 
     SDL_Window* window = NULL;
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -414,15 +422,21 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 
 	//////////////START OF TEXTURE LOAD
 	SDL_Surface* texture;
-	texture = IMG_Load("texture.png");
-	if(!texture){
-		printf("ERROR:%s", IMG_GetError());
-	}
+	uint32_t* tData;
+	if(ENABLE_TEXTURES){
+		texture = IMG_Load("texture.png");
+		if(!texture){
+			printf("ERROR:%s", IMG_GetError());
+		}
 
 
-	uint32_t* tData = (uint32_t*)malloc(TEXTURE_WIDTH*TEXTURE_HEIGHT*sizeof(uint32_t));
-	for(int i=0;i<TEXTURE_WIDTH*TEXTURE_HEIGHT;i++){
-		tData[i] = getpixel(texture, i%TEXTURE_WIDTH, i/TEXTURE_WIDTH);
+		uint32_t* tData = (uint32_t*)malloc(TEXTURE_WIDTH*TEXTURE_HEIGHT*sizeof(uint32_t));
+		for(int i=0;i<TEXTURE_WIDTH*TEXTURE_HEIGHT;i++){
+			tData[i] = getpixel(texture, i%TEXTURE_WIDTH, i/TEXTURE_WIDTH);
+		}
+	}else{
+		uint32_t tDataEl = 0;
+		tData = &tDataEl;
 	}
 	//END OF TEXTURE LOAD
 	Scene* scene;
