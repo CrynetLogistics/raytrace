@@ -44,7 +44,7 @@ int DEBUG_LEVEL = 0;
 
 //-----------------------------------------------------------------------------
 #define MAX_ANIMATION_ITERATIONS 1 // 1 for just a still image
-#define DISPLAY_TIME 30000
+#define DISPLAY_TIME 300
 #define MAX_ITERATIONS 3
 #define TEXTURE_WIDTH 600
 #define TEXTURE_HEIGHT 300
@@ -491,7 +491,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	
 
 
-    //This algorithm for saving images is shit, switch to the alogrithm below for better resutls
+    //This algorithm for saving images is not robust, switch to the alogrithm below for better resutls
     //saveScreenshotBMP("world.bmp", window, renderer);
 	
 
@@ -517,9 +517,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 		free(tData);
 	}
 	free(thisLaunch);
-	while(true){
+	//while(true){
 		SDL_Delay(DISPLAY_TIME);
-	}
+	//}
 	//Destroy window
     SDL_DestroyWindow(window);
     //Quit SDL subsystems

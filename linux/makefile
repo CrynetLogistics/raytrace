@@ -5,7 +5,7 @@ FLAGS =  -c -rdc=true -std=c++11
 all: raytracer
 
 raytracer: Camera.o kernel.o Light.o Material.o Mesh.o parser.o Plane.o Ray.o Raytracer.o Scene.o Sphere.o Tri.o extremum_t.o vector_t.o BinTree.o BinTreeNode.o
-	$(CC) Camera.o kernel.o Light.o Material.o Mesh.o parser.o Plane.o Ray.o Raytracer.o Scene.o Sphere.o Tri.o extremum_t.o vector_t.o BinTree.o BinTreeNode.o -o raytracer -rdc=true -I/sdl_src/include -L./sdl_src/lib -lSDL2 -lSDL2_image && rm *.o
+	$(CC) Camera.o kernel.o Light.o Material.o Mesh.o parser.o Plane.o Ray.o Raytracer.o Scene.o Sphere.o Tri.o extremum_t.o vector_t.o BinTree.o BinTreeNode.o -o raytracer -rdc=true -I/sdl_src/include -L./sdl_src/lib -lSDL2 -lSDL2_image
 
 Camera.o: ../Camera.cu
 	$(CC) $(FLAGS) ../Camera.cu
