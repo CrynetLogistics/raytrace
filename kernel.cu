@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <ctime>
-#include "SDL.h"
-#include "SDL_image.h"
+#include "linux/sdl_src/SDL2/include/SDL.h"
+#include "linux/sdl_src/SDL2_image/SDL_image.h"
 #include "stdio.h"
 #include "stdint.h"
 #include "math.h"
@@ -488,7 +488,19 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 			SDL_RenderPresent(renderer);
 		}
 	}
-	saveScreenshotBMP("world.bmp", window, renderer);
+	
+
+
+    //This algorithm for saving images is shit, switch to the alogrithm below for better resutls
+    //saveScreenshotBMP("world.bmp", window, renderer);
+	
+
+
+    //http://stackoverflow.com/questions/22315980/sdl2-c-taking-a-screenshot
+    SDL_Surface *sshot = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot->pixels, sshot->pitch);
+    SDL_SaveBMP(sshot, "output.bmp");
+    SDL_FreeSurface(sshot);
 	
 
 
