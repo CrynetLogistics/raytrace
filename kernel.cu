@@ -23,10 +23,10 @@
 //IF USE_BLOCK_BY_BLOCKING_RENDERING == 1
 //	THEN RENDER_SQUARE_SIZE*RENDER_SQUARE_SIZE = THREADS_PER_BLOCK*NUM_OF_BLOCKS
 //	ELSE SCREEN_WIDTH*SCREEN_HEIGHT = THREADS_PER_BLOCK*NUM_OF_BLOCKS
-#define RENDER_SQUARE_SIZE 80
+#define RENDER_SQUARE_SIZE 40
 //
 #define THREADS_PER_BLOCK 256
-#define NUM_OF_BLOCKS 25
+#define NUM_OF_BLOCKS 100
 //#define THREADS_PER_BLOCK 1024
 //#define NUM_OF_BLOCKS 900
 //
@@ -105,10 +105,10 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	//d_scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
-	d_scene->addTri(v1,v2,v3,bright_green, SHINY);
-	d_scene->addTri(v2,v3,v4,bright_green, SHINY);
-	d_scene->addTri(v3,v4,v5,bright_green, SHINY);
-	d_scene->addTri(v4,v5,v6,bright_green, SHINY);
+	//d_scene->addTri(v1,v2,v3,bright_green, SHINY);
+	//d_scene->addTri(v2,v3,v4,bright_green, SHINY);
+	//d_scene->addTri(v3,v4,v5,bright_green, SHINY);
+	//d_scene->addTri(v4,v5,v6,bright_green, SHINY);
 	//scene->addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
 	//scene->addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
 	/*d_scene->addSphere(2,10,5,2.5,dark_red,SHINY);
@@ -499,7 +499,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
     //http://stackoverflow.com/questions/22315980/sdl2-c-taking-a-screenshot
     SDL_Surface *sshot = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot->pixels, sshot->pitch);
-    SDL_SaveBMP(sshot, "output.bmp");
+	std::string outName = FILENAME_i;
+	outName.append("_out.bmp");
+	SDL_SaveBMP(sshot, outName.c_str());
     SDL_FreeSurface(sshot);
 	
 
