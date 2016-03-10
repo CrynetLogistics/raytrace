@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include "kernel.h"
-#include "Auxiliary\structures.h"
+#include "Auxiliary/structures.h"
 
 using namespace std;
 
