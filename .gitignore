@@ -4,5 +4,3 @@ Release/
 *.vcxproj.user
 *.dll
 *.cd
-*.blend1
-*.o

@@ -24,6 +24,8 @@ int main(){
 	string FILENAME;
 	int BSPBVH_DEPTH, ENABLE_TEXTURES, DEBUG_LEVEL;
 
+	int FRAMES_TO_RENDER;
+
 
 	cudaGetDeviceCount(&CUDA_DEVICE_NUMBER);
 
@@ -79,5 +81,17 @@ int main(){
 
 	cin>>DEBUG_LEVEL;
 
-	raytrace(USE_GPU, SCREEN_WIDTH, SCREEN_HEIGHT, FILENAME, MSAA_LEVEL, BSPBVH_DEPTH, ENABLE_TEXTURES, DEBUG_LEVEL);
+	cout<<"PLEASE ENTER THE NUMBER OF FRAMES TO RENDER:";
+
+	cin>>FRAMES_TO_RENDER;
+
+
+	for(int i=60; i<60+FRAMES_TO_RENDER; i++){
+		string frameName = "";
+		frameName.append(FILENAME);
+		frameName.append("_0000");
+		frameName.append(to_string(i));
+		frameName.append(".obj");
+		raytrace(USE_GPU, SCREEN_WIDTH, SCREEN_HEIGHT, frameName, MSAA_LEVEL, BSPBVH_DEPTH, ENABLE_TEXTURES, DEBUG_LEVEL);
+	}
 }

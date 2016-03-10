@@ -499,7 +499,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
     //http://stackoverflow.com/questions/22315980/sdl2-c-taking-a-screenshot
     SDL_Surface *sshot = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot->pixels, sshot->pitch);
-    SDL_SaveBMP(sshot, "output.bmp");
+	std::string outName = FILENAME_i;
+	outName.append("_out.bmp");
+	SDL_SaveBMP(sshot, outName.c_str());
     SDL_FreeSurface(sshot);
 	
 
