@@ -177,6 +177,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
     <CudaCompile Include="BinTree\BinTree.cu" />
     <CudaCompile Include="BinTree\BinTreeNode.cu" />
+    <CudaCompile Include="parser.cu" />
     <CudaCompile Include="Sphere.cu">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
@@ -244,7 +245,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="Mesh.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
-    <ClCompile Include="parser.cpp" />
     <ClCompile Include="Plane.h">
       <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateRelocatableDeviceCode>
     </ClCompile>
