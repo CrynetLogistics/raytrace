@@ -27,8 +27,6 @@
 //
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 25
-//#define THREADS_PER_BLOCK 1024
-//#define NUM_OF_BLOCKS 900
 //
 
 std::string FILENAME;
@@ -56,14 +54,6 @@ bool saveScreenshotBMP(std::string filepath, SDL_Window* SDLWindow, SDL_Renderer
 
 __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 							int* d_numOfTris, vertex_t* d_verts, triPrototype_t* d_tris){
-	colour_t dark_red;
-	dark_red.r = 150;
-	dark_red.g = 0;
-	dark_red.b = 0;
-	colour_t soft_red;
-	soft_red.r = 255;
-	soft_red.g = 77;
-	soft_red.b = 99;
 	colour_t bright_green;
 	bright_green.r = 33;
 	bright_green.g = 255;
@@ -83,8 +73,6 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	vertex_t v4;
 	vertex_t v5;
 	vertex_t v6;
-	vertex_t v7;
-	vertex_t v8;
 
 	v1.x = -30;v1.y = 0;v1.z = -3;
 	v2.x = 30;v2.y = 0;v2.z = -3;
@@ -92,31 +80,15 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	v4.x = 30;v4.y = 50;v4.z = -3;
 	v5.x = -30;v5.y = 50;v5.z = 30;
 	v6.x = 30;v6.y = 50;v6.z = 30;
-	v7.x = -30;v7.y = 0;v7.z = 30;
-	v8.x = 30;v8.y = 0;v8.z = 30;
 
 	//6 Meshes; Meshes = {Spheres, Planes}
-	//Scene scene(9, textureData);
 	d_scene = new (d_scene) Scene(4 + *d_numOfTris, textureData);
-	//d_scene = new Scene(9, textureData);
 	d_scene->addLight(-1,8,6,10);
 	d_scene->setHorizonColour(black);
-	//d_scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
-	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
-	//d_scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
-	//scene->addPlane(v7,v8,v5,v6,bright_green,DIFFUSE);
 	d_scene->addTri(v1,v2,v3,bright_green, SHINY);
 	d_scene->addTri(v2,v3,v4,bright_green, SHINY);
 	d_scene->addTri(v3,v4,v5,bright_green, SHINY);
 	d_scene->addTri(v4,v5,v6,bright_green, SHINY);
-	//scene->addPlane(v1,v3,v5,v7,bright_green,DIFFUSE);
-	//scene->addPlane(v2,v4,v6,v8,bright_green,DIFFUSE);
-	/*d_scene->addSphere(2,10,5,2.5,dark_red,SHINY);
-	d_scene->addSphere(6,9,3,3,cold_blue,DIFFUSE);
-	d_scene->addSphere(6,7,-1,2,cold_blue,SHINY);
-	d_scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
-	d_scene->addSphere(*d_param-6,8,-2,2,soft_red,GLASS);
-	d_scene->addSphere(-9,8,3,3,bright_green,SHINY);*/
 
 	//auto parser
 
@@ -181,8 +153,8 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 
 	d_initScene<<<1,1>>>(d_scene, d_textureData, d_param, d_numOfTris, d_verts, d_tris);
 
-	std::cout<<"Building BSP BVH on GPU...";
 	if(BSPBVH_DEPTH!=0){
+		std::cout<<"Building BSP BVH on GPU...";
 		int* d_BSPBVH_DEPTH;
 		Stack<BinTreeNode*> *d_unPropagatedNodes;
 		Stack<BinTreeNode*> *h_unPropagatedNodes = (Stack<BinTreeNode*> *)malloc(sizeof(Stack<BinTreeNode>));
@@ -204,8 +176,9 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 		cudaFree(d_BSPBVH_DEPTH);
 		cudaFree(d_unPropagatedNodes);
 		free(h_unPropagatedNodes);
+		std::cout<<"done"<<std::endl;
 	}
-	std::cout<<"done"<<std::endl;
+	
 
 	cudaFree(d_param);
 	free(h_param);
@@ -213,14 +186,6 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 }
 
 Scene* h_initScene(uint32_t* h_texture, int t){
-	colour_t dark_red;
-	dark_red.r = 150;
-	dark_red.g = 0;
-	dark_red.b = 0;
-	colour_t soft_red;
-	soft_red.r = 255;
-	soft_red.g = 77;
-	soft_red.b = 99;
 	colour_t bright_green;
 	bright_green.r = 33;
 	bright_green.g = 255;
@@ -240,8 +205,6 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	vertex_t v4;
 	vertex_t v5;
 	vertex_t v6;
-	vertex_t v7;
-	vertex_t v8;
 
 	v1.x = -30;v1.y = 0;v1.z = -3;
 	v2.x = 30;v2.y = 0;v2.z = -3;
@@ -249,8 +212,6 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	v4.x = 30;v4.y = 50;v4.z = -3;
 	v5.x = -30;v5.y = 50;v5.z = 30;
 	v6.x = 30;v6.y = 50;v6.z = 30;
-	v7.x = -30;v7.y = 0;v7.z = 30;
-	v8.x = 30;v8.y = 0;v8.z = 30;
 
 	//autoparser
 	scenePrototype_t exterior = parseFile(FILENAME, DEBUG_LEVEL);
@@ -258,19 +219,10 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	Scene *scene = new Scene(4 + exterior.numOfTris, h_texture);
 	scene->addLight(-1,8,6,10);
 	scene->setHorizonColour(black);
-	//scene->addPlane(v1,v2,v3,v4,bright_green,SHINY);
-	//scene->addPlane(v3,v4,v5,v6,bright_green,SHINY);
 	scene->addTri(v1,v2,v3,bright_green, SHINY);
 	scene->addTri(v2,v3,v4,bright_green, SHINY);
 	scene->addTri(v3,v4,v5,bright_green, SHINY);
 	scene->addTri(v4,v5,v6,bright_green, SHINY);
-
-	//scene->addSphere(2,10,5,2.5,dark_red,SHINY);
-	//scene->addSphere(6,9,3,t,cold_blue,DIFFUSE);
-	//scene->addSphere(6,7,-1,2,cold_blue,SHINY);
-	//scene->addSphere(-2,6,0,1.2f,soft_red,WATER);
-	//scene->addSphere(-6,8,-2,2,soft_red,GLASS);
-	//scene->addSphere(-9,8,3,3,bright_green,SHINY);
 
 	//auto parser
 
@@ -285,11 +237,12 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
-	std::cout<<"Building BSP BVH on CPU...";
+	
 	if(BSPBVH_DEPTH!=0){
+		std::cout<<"Building BSP BVH on CPU...";
 		scene->buildBSPBVH(BSPBVH_DEPTH);
+		std::cout<<"done"<<std::endl;
 	}
-	std::cout<<"done"<<std::endl;
 
 	return scene;
 }
@@ -488,25 +441,21 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 			SDL_RenderPresent(renderer);
 		}
 	}
-	
-
-
-    //This algorithm for saving images is not robust, switch to the alogrithm below for better resutls
-    //saveScreenshotBMP("world.bmp", window, renderer);
-	
 
 
     //http://stackoverflow.com/questions/22315980/sdl2-c-taking-a-screenshot
     SDL_Surface *sshot = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot->pixels, sshot->pitch);
-    SDL_SaveBMP(sshot, "output.bmp");
+    std::string outName = FILENAME_i;
+	outName.append("_out.bmp");
+	SDL_SaveBMP(sshot, outName.c_str());
     SDL_FreeSurface(sshot);
 	
 
 
 	double timeDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 
-	printf("Done in %.3fs\n\twith scene creation taking %.3fs", timeDuration, afterSceneCreation - beforeSceneCreation);
+	printf("Done in %.3fs\n\twith scene creation taking %.3fs\n", timeDuration, afterSceneCreation - beforeSceneCreation);
 	if(USE_CUDA){
 		d_destroyScene(scene, tData);
 	}else{
@@ -517,9 +466,8 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 		free(tData);
 	}
 	free(thisLaunch);
-	//while(true){
-		SDL_Delay(DISPLAY_TIME);
-	//}
+	SDL_Delay(DISPLAY_TIME);
+
 	//Destroy window
     SDL_DestroyWindow(window);
     //Quit SDL subsystems
@@ -566,39 +514,4 @@ uint32_t getpixel(SDL_Surface *surface, int x, int y)
     default:
         return 0;       /* shouldn't happen, but avoids warnings */
     }
-}
-
-//UTILITY FUNCTION COURTESY OF stackoverflow.com/questions/20233469/how-do-i-take-and-save-a-bmp-screenshot-in-sdl-2
-bool saveScreenshotBMP(std::string filepath, SDL_Window* SDLWindow, SDL_Renderer* SDLRenderer) {
-    SDL_Surface* saveSurface = NULL;
-    SDL_Surface* infoSurface = NULL;
-    infoSurface = SDL_GetWindowSurface(SDLWindow);
-    if (infoSurface == NULL) {
-        std::cerr << "Failed to create info surface from window in saveScreenshotBMP(string), SDL_GetError() - " << SDL_GetError() << "\n";
-    } else {
-        unsigned char * pixels = new (std::nothrow) unsigned char[infoSurface->w * infoSurface->h * infoSurface->format->BytesPerPixel];
-        if (pixels == 0) {
-            std::cerr << "Unable to allocate memory for screenshot pixel data buffer!\n";
-            return false;
-        } else {
-            if (SDL_RenderReadPixels(SDLRenderer, &infoSurface->clip_rect, infoSurface->format->format, pixels, infoSurface->w * infoSurface->format->BytesPerPixel) != 0) {
-                std::cerr << "Failed to read pixel data from SDL_Renderer object. SDL_GetError() - " << SDL_GetError() << "\n";
-                pixels = NULL;
-                return false;
-            } else {
-                saveSurface = SDL_CreateRGBSurfaceFrom(pixels, infoSurface->w, infoSurface->h, infoSurface->format->BitsPerPixel, infoSurface->w * infoSurface->format->BytesPerPixel, infoSurface->format->Rmask, infoSurface->format->Gmask, infoSurface->format->Bmask, infoSurface->format->Amask);
-                if (saveSurface == NULL) {
-                    std::cerr << "Couldn't create SDL_Surface from renderer pixel data. SDL_GetError() - " << SDL_GetError() << "\n";
-                    return false;
-                }
-                SDL_SaveBMP(saveSurface, filepath.c_str());
-                SDL_FreeSurface(saveSurface);
-                saveSurface = NULL;
-            }
-            delete[] pixels;
-        }
-        SDL_FreeSurface(infoSurface);
-        infoSurface = NULL;
-    }
-    return true;
 }
