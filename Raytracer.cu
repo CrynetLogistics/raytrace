@@ -91,7 +91,7 @@ int main(){
 		cin>>FRAMES_TO_RENDER;
 
 
-		for(int i=60; i<60+FRAMES_TO_RENDER; i++){
+		for(int i=START_FRAME; i<START_FRAME+FRAMES_TO_RENDER; i++){
 			string frameName = "";
 			frameName.append(FILENAME);
 			if(i<=99){
