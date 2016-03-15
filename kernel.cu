@@ -48,7 +48,7 @@ int DEBUG_LEVEL = 0;
 #define TEXTURE_HEIGHT 300
 //-----------------------------------------------------------------------------
 uint32_t getpixel(SDL_Surface *surface, int x, int y);
-void processColourOverspill(SDL_Renderer *renderer, colour_t col);
+void processColourOverspill(SDL_Surface *rendererAux, colour_t col, int i, int j);
 bool saveScreenshotBMP(std::string filepath, SDL_Window* SDLWindow, SDL_Renderer* SDLRenderer);
 //-----------------------------------------------------------------------------
 
@@ -282,7 +282,7 @@ void h_destroyScene(Scene* h_scene){
 }
 
 //where x and y are the top left most coordinates and squareSize is one block being rendered
-void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scene* scene){
+void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scene* scene, SDL_Surface* rendererAux){
 	int samplesToRender = pow(MSAA_LEVEL+1, 2);
 	int numberOfPixels = thisLaunch->squareSizeX*thisLaunch->squareSizeY;
 
@@ -330,12 +330,19 @@ void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scen
 			int index = (j-thisLaunch->y*thisLaunch->squareSizeY)*thisLaunch->squareSizeX+(i-thisLaunch->x*thisLaunch->squareSizeX);
 
 			if(finalColour[index].r<=255 && finalColour[index].g<=255 && finalColour[index].b<=255){
-				SDL_SetRenderDrawColor(renderer, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b, 255);
+				//SDL_SetRenderDrawColor(renderer, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b, 255);
+                SDL_Rect r;
+                r.x = i;
+                r.y = j;
+                r.w = 1;
+                r.h = 1;
+                
+                SDL_FillRect(rendererAux, &r, SDL_MapRGB(rendererAux->format, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b));
 			}else{
 				//handle overspill colours
-				processColourOverspill(renderer, finalColour[index]);
+				processColourOverspill(rendererAux, finalColour[index], i, j);
 			}
-			SDL_RenderDrawPoint(renderer, i, j);
+			//SDL_RenderDrawPoint(renderer, i, j);
 		}
 	}
 
@@ -354,6 +361,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	double afterSceneCreation;
 	double beforeSceneCreation;
 
+    SDL_Surface *rendererAux = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
 
 	///
 	MSAA_LEVEL = MSAA_LEVEL_i;
@@ -428,7 +436,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 					thisLaunch->x = i;
 					thisLaunch->y = j;
 					
-					drawPixelRaytracer(renderer, thisLaunch, scene);
+					drawPixelRaytracer(renderer, thisLaunch, scene, rendererAux);
 					SDL_RenderPresent(renderer);
 				}
 			}
@@ -437,20 +445,30 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 			thisLaunch->squareSizeY = SCREEN_HEIGHT;
 			thisLaunch->x = 0;
 			thisLaunch->y = 0;
-			drawPixelRaytracer(renderer, thisLaunch, scene);
+			drawPixelRaytracer(renderer, thisLaunch, scene, rendererAux);
 			SDL_RenderPresent(renderer);
 		}
 	}
 
 
+
+
     //http://stackoverflow.com/questions/22315980/sdl2-c-taking-a-screenshot
-    SDL_Surface *sshot = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
-    SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot->pixels, sshot->pitch);
-    std::string outName = FILENAME_i;
-	outName.append("_out.bmp");
-	SDL_SaveBMP(sshot, outName.c_str());
-    SDL_FreeSurface(sshot);
+    //SDL_Surface *sshot = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    //SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot->pixels, sshot->pitch);
+	//std::string outName = FILENAME_i;
+	//outName.append("_out.bmp");
+	//SDL_SaveBMP(sshot, outName.c_str());
+    //SDL_FreeSurface(sshot);
+
+
+    std::string outName2 = FILENAME_i;
+	outName2.append("_out2.bmp");
+	SDL_SaveBMP(rendererAux, outName2.c_str());
+    SDL_FreeSurface(rendererAux);
 	
+
+
 
 
 	double timeDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
@@ -476,7 +494,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 }
 
 //UTILITY FUNCTION TO SCALE COLOURS
-void processColourOverspill(SDL_Renderer *renderer, colour_t col){
+void processColourOverspill(SDL_Surface *rendererAux, colour_t col, int i, int j){
 	float max;
 	int r = col.r;
 	int g = col.g;
@@ -489,7 +507,15 @@ void processColourOverspill(SDL_Renderer *renderer, colour_t col){
 		max = (float)g;
 	}
 	float multiplier = 255/max;
-	SDL_SetRenderDrawColor(renderer, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier, 255);
+
+    SDL_Rect rr;
+    rr.x = i;
+    rr.y = j;
+    rr.w = 1;
+    rr.h = 1;
+
+    SDL_FillRect(rendererAux, &rr, SDL_MapRGB(rendererAux->format, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier));
+//	SDL_SetRenderDrawColor(renderer, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier, 255);
 }
 
 //UTILITY FUNCTION COURTESY OF sdl.beuc.net/sdl.wiki/Pixel_Access
