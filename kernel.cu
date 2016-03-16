@@ -67,33 +67,15 @@ __global__ void d_initScene(Scene* d_scene, uint32_t* textureData, int* d_param,
 	black.g = 0;
 	black.b = 0;
 
-	vertex_t v1;
-	vertex_t v2;
-	vertex_t v3;
-	vertex_t v4;
-	vertex_t v5;
-	vertex_t v6;
-
-	v1.x = -30;v1.y = 0;v1.z = -3;
-	v2.x = 30;v2.y = 0;v2.z = -3;
-	v3.x = -30;v3.y = 50;v3.z = -3;
-	v4.x = 30;v4.y = 50;v4.z = -3;
-	v5.x = -30;v5.y = 50;v5.z = 30;
-	v6.x = 30;v6.y = 50;v6.z = 30;
-
-	//6 Meshes; Meshes = {Spheres, Planes}
+	//6 Meshes; Meshes = {Spheres, Planes, Tris} + *numOfTris
 	d_scene = new (d_scene) Scene(4 + *d_numOfTris, textureData);
 	d_scene->addLight(-1,8,6,10);
 	d_scene->setHorizonColour(black);
-	d_scene->addTri(v1,v2,v3,bright_green, SHINY);
-	d_scene->addTri(v2,v3,v4,bright_green, SHINY);
-	d_scene->addTri(v3,v4,v5,bright_green, SHINY);
-	d_scene->addTri(v4,v5,v6,bright_green, SHINY);
 
 	//auto parser
 
 	for(int i=0; i<*d_numOfTris; i++){
-		d_scene->addTri(d_verts[d_tris[i].v1-1], d_verts[d_tris[i].v2-1], d_verts[d_tris[i].v3-1], cold_blue, DIFFUSE);
+		d_scene->addTri(d_verts[d_tris[i].v1-1], d_verts[d_tris[i].v2-1], d_verts[d_tris[i].v3-1], cold_blue, SHINY);
 	}
 }
 
@@ -138,10 +120,10 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 
 	//auto parser
 
-	
+
 	cudaMalloc((void**) &d_param, sizeof(int));
 	cudaMalloc((void**) &d_scene, sizeof(Scene));
-	
+
 	cudaMemcpy(d_param, h_param, sizeof(int), cudaMemcpyHostToDevice);
 
 	if(ENABLE_TEXTURES){
@@ -168,7 +150,7 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 		cudaMemcpy(h_unPropagatedNodes, d_unPropagatedNodes, sizeof(Stack<BinTreeNode*>), cudaMemcpyDeviceToHost);
 
 		while(!h_unPropagatedNodes->isEmpty()){
-		
+
 			d_continuePropagation<<<1,1>>>(d_unPropagatedNodes);
 			cudaMemcpy(h_unPropagatedNodes, d_unPropagatedNodes, sizeof(Stack<BinTreeNode*>), cudaMemcpyDeviceToHost);
 		}
@@ -178,7 +160,7 @@ Scene* d_initScene(uint32_t* h_texture, int t){
 		free(h_unPropagatedNodes);
 		std::cout<<"done"<<std::endl;
 	}
-	
+
 
 	cudaFree(d_param);
 	free(h_param);
@@ -199,30 +181,13 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 	black.g = 0;
 	black.b = 0;
 
-	vertex_t v1;
-	vertex_t v2;
-	vertex_t v3;
-	vertex_t v4;
-	vertex_t v5;
-	vertex_t v6;
-
-	v1.x = -30;v1.y = 0;v1.z = -3;
-	v2.x = 30;v2.y = 0;v2.z = -3;
-	v3.x = -30;v3.y = 50;v3.z = -3;
-	v4.x = 30;v4.y = 50;v4.z = -3;
-	v5.x = -30;v5.y = 50;v5.z = 30;
-	v6.x = 30;v6.y = 50;v6.z = 30;
-
 	//autoparser
 	scenePrototype_t exterior = parseFile(FILENAME, DEBUG_LEVEL);
 
-	Scene *scene = new Scene(4 + exterior.numOfTris, h_texture);
+	//first parameter denotes the number of hardcoded objects + exterior.numOfTris
+	Scene *scene = new Scene(1 + exterior.numOfTris, h_texture);
 	scene->addLight(-1,8,6,10);
 	scene->setHorizonColour(black);
-	scene->addTri(v1,v2,v3,bright_green, SHINY);
-	scene->addTri(v2,v3,v4,bright_green, SHINY);
-	scene->addTri(v3,v4,v5,bright_green, SHINY);
-	scene->addTri(v4,v5,v6,bright_green, SHINY);
 
 	//auto parser
 
@@ -232,12 +197,12 @@ Scene* h_initScene(uint32_t* h_texture, int t){
 
 	for(int i=0; i<numOfTris; i++){
 		//1 indexed so must switch to 0 indexed
-		scene->addTri(verts[tris[i].v1-1], verts[tris[i].v2-1], verts[tris[i].v3-1], cold_blue, DIFFUSE);
+		scene->addTri(verts[tris[i].v1-1], verts[tris[i].v2-1], verts[tris[i].v3-1], cold_blue, SHINY);
 	}
 
 	//auto parser
 
-	
+
 	if(BSPBVH_DEPTH!=0){
 		std::cout<<"Building BSP BVH on CPU...";
 		scene->buildBSPBVH(BSPBVH_DEPTH);
@@ -336,7 +301,7 @@ void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scen
                 r.y = j;
                 r.w = 1;
                 r.h = 1;
-                
+
                 SDL_FillRect(rendererAux, &r, SDL_MapRGB(rendererAux->format, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b));
 			}else{
 				//handle overspill colours
@@ -377,9 +342,9 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	//create window
-	window = SDL_CreateWindow("Raytracer", 
+	window = SDL_CreateWindow("Raytracer",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    
+
 	SDL_Renderer *renderer = NULL;
 	renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED);
 	//BACKGROUND COLOUR SET
@@ -426,7 +391,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 
 		//takes time signature after scene is built
 		afterSceneCreation = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-				
+
 		if(USE_BLOCK_BY_BLOCKING_RENDERING){
 			for(int j=0; j<SCREEN_HEIGHT/RENDER_SQUARE_SIZE; j++){
 				for(int i=0; i<SCREEN_WIDTH/RENDER_SQUARE_SIZE; i++){
@@ -435,7 +400,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 					thisLaunch->squareSizeY = RENDER_SQUARE_SIZE;
 					thisLaunch->x = i;
 					thisLaunch->y = j;
-					
+
 					drawPixelRaytracer(renderer, thisLaunch, scene, rendererAux);
 					SDL_RenderPresent(renderer);
 				}
@@ -466,7 +431,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 	outName2.append("_out2.bmp");
 	SDL_SaveBMP(rendererAux, outName2.c_str());
     SDL_FreeSurface(rendererAux);
-	
+
 
 
 
