@@ -94,11 +94,15 @@ int main(){
 		for(int i=START_FRAME; i<START_FRAME+FRAMES_TO_RENDER; i++){
 			string frameName = "";
 			frameName.append(FILENAME);
-			if(i<=99){
+            if(i<=9){
+				frameName.append("_00000");
+            }else if(i<=99){
 				frameName.append("_0000");
 			}else if(i<=999){
 				frameName.append("_000");
-			}
+			}else{
+				frameName.append("_00");
+            }
 			frameName.append(to_string(i));
 			frameName.append(".obj");
 			raytrace(USE_GPU, SCREEN_WIDTH, SCREEN_HEIGHT, frameName, MSAA_LEVEL, BSPBVH_DEPTH, ENABLE_TEXTURES, DEBUG_LEVEL);
