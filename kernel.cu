@@ -48,7 +48,7 @@ int DEBUG_LEVEL = 0;
 #define TEXTURE_HEIGHT 300
 //-----------------------------------------------------------------------------
 uint32_t getpixel(SDL_Surface *surface, int x, int y);
-void processColourOverspill(SDL_Surface *rendererAux, colour_t col, int i, int j);
+void processColourOverspill(SDL_Renderer *renderer, SDL_Surface *rendererAux, colour_t col, int i, int j);
 bool saveScreenshotBMP(std::string filepath, SDL_Window* SDLWindow, SDL_Renderer* SDLRenderer);
 //-----------------------------------------------------------------------------
 
@@ -295,19 +295,22 @@ void drawPixelRaytracer(SDL_Renderer *renderer, launchParams_t* thisLaunch, Scen
 			int index = (j-thisLaunch->y*thisLaunch->squareSizeY)*thisLaunch->squareSizeX+(i-thisLaunch->x*thisLaunch->squareSizeX);
 
 			if(finalColour[index].r<=255 && finalColour[index].g<=255 && finalColour[index].b<=255){
-				//SDL_SetRenderDrawColor(renderer, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b, 255);
+				//draws image to screen
+				SDL_SetRenderDrawColor(renderer, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b, 255);
+
+				//draws image to surface for filesaving
                 SDL_Rect r;
                 r.x = i;
                 r.y = j;
                 r.w = 1;
                 r.h = 1;
-
                 SDL_FillRect(rendererAux, &r, SDL_MapRGB(rendererAux->format, (int)finalColour[index].r, (int)finalColour[index].g, (int)finalColour[index].b));
 			}else{
 				//handle overspill colours
-				processColourOverspill(rendererAux, finalColour[index], i, j);
+				processColourOverspill(renderer, rendererAux, finalColour[index], i, j);
 			}
-			//SDL_RenderDrawPoint(renderer, i, j);
+			//draws image to renderer for drawing to screen
+			SDL_RenderDrawPoint(renderer, i, j);
 		}
 	}
 
@@ -459,7 +462,7 @@ int raytrace(int USE_GPU_i, int SCREEN_WIDTH_i, int SCREEN_HEIGHT_i, std::string
 }
 
 //UTILITY FUNCTION TO SCALE COLOURS
-void processColourOverspill(SDL_Surface *rendererAux, colour_t col, int i, int j){
+void processColourOverspill(SDL_Renderer* renderer, SDL_Surface *rendererAux, colour_t col, int i, int j){
 	float max;
 	int r = col.r;
 	int g = col.g;
@@ -480,7 +483,9 @@ void processColourOverspill(SDL_Surface *rendererAux, colour_t col, int i, int j
     rr.h = 1;
 
     SDL_FillRect(rendererAux, &rr, SDL_MapRGB(rendererAux->format, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier));
-//	SDL_SetRenderDrawColor(renderer, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier, 255);
+
+	//for drawing to screen
+	SDL_SetRenderDrawColor(renderer, (int)r*multiplier, (int)g*multiplier, (int)b*multiplier, 255);
 }
 
 //UTILITY FUNCTION COURTESY OF sdl.beuc.net/sdl.wiki/Pixel_Access

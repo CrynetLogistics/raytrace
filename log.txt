@@ -20,11 +20,10 @@
 39 - added Materials class
 42 - separated files to folders
 45 - fixing, cleaning, prepping for CUDA implementation, 11.4s rendertime
-CrynetLogistics-CUDA upload - 46 - CUDA mostly working
+46 - (CrynetLogistics-CUDA upload - ) CUDA mostly working
 47 - a cuda work in progress
 50 - cuda working feature implementation work left
-51 - removing recursion from shadow/bounce tracing since with an arbiarily large sample size,
-the recursion will be arbitarily deep, will find an iterative alternative
+51 - removing recursion from shadow/bounce tracing since with an arbiarily large sample size, the recursion will be arbitarily deep, will find an iterative alternative
 55 - implemented an array to hold all the secondary rays which will be individually processed after the main ray
 56 - fully working CUDA raytracer complete with all features
 57 - added triangle support
@@ -52,9 +51,10 @@ the recursion will be arbitarily deep, will find an iterative alternative
 109 - replaced stack implementation for tree queues instead of queues
 110 - no bugs remaining, CPU implementation of BSP BVH is fully working, significant improvements to render speed observed as expected: 650s with no BVH, 90s with 32 bisections using BVH
 115 - GPU implementation of BSP BVH working, unimaginable improvements to render speed observed: (CPU: 650s no BVH, 90s with 32 Hierarchies) (GPU: 88s no BVH, 29s with with 32 Hierarchies)
+125 - Many features added such as ssh image saving, animation rendering
 
 Features:
 CUDA renderer, Global illumination (GI), Ray tracing, Spheres, Planes, Tris, Textures, MultiSampling AntiAliasing (MSAA), Binary Spatial Partitioning Bounded Volume Hierachy (BSP-BVH) for CPUs and GPUs
 
 Upcoming Features:
-Ambient Occlusion Pass
+Zero-Copy Host memory for BSP-BVH for GPU rendering, Ambient Occlusion Pass
