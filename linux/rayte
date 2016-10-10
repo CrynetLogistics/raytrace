@@ -1,0 +1,4 @@
+#Use this program to run the raytracer
+
+export LD_LIBRARY_PATH=./sdl_src/lib
+./raytracer
